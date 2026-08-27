@@ -6,7 +6,7 @@ import Categories from "./components/Categories";
 import Features from "./components/Features";
 import CustomerReviews from "./components/CustomerReviews";
 import Subscribe from "./components/Subscribe";
-import Footer from "./components/Footer";
+import Footer from "./components/Footer"; 
 
 function App() {
   return (
