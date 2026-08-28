@@ -77,8 +77,13 @@ body {
    HEADER
 ========================= */
 
-
 /* hero slider */
+
+.shipping-bar {
+  background-color: black;
+  font-size: 13px;
+  color: white;
+}
 .hero-slider {
   position: relative;
   width: 100%;
@@ -429,6 +434,15 @@ body {
   transform: scale(1.03);
 }
 
+.product-card-link {
+  cursor: pointer;
+}
+
+.product-card-link:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: -2px;
+}
+
 /* Select options */
 
 .select-options {
@@ -482,16 +496,16 @@ body {
 
 .product-name-price h3 {
   margin: 0;
-
-  font-size: 19px;
+  color: #000;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 1px;
 }
 
 .product-name-price span {
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 600;
-
+  color: #000;
   white-space: nowrap;
 }
 
@@ -814,7 +828,7 @@ body {
   color: #000;
   font-size: 32px;
   margin-bottom: 40px;
-  font-weight:600;
+  font-weight: 600;
 }
 
 .review-slider {
@@ -828,7 +842,7 @@ body {
 .review-slider {
   background-color: #fff;
   transition: all 0.3s ease;
-  color:#000;
+  color: #000;
 }
 
 .review-slider:hover {
@@ -873,7 +887,7 @@ body {
 .review-arrow {
   width: 45px;
   height: 45px;
-  color:#000;
+  color: #000;
   border: 1px solid #222;
   background: white;
   border-radius: 50%;
@@ -933,7 +947,7 @@ body {
 .subscribe-content h2 {
   font-size: 48px;
   margin-bottom: 15px;
-  color:#000;
+  color: #000;
 }
 
 .subscribe-content p {
@@ -950,7 +964,7 @@ body {
 
 .subscribe-form input {
   flex: 1;
-  border-radius:5px;
+  border-radius: 5px;
   background-color: #f8f8f8;
   padding: 15px;
   border: solid 1px #000;
@@ -966,7 +980,7 @@ body {
   color: #fff;
   font-weight: bold;
 }
-.subscribe-form button:hover{
+.subscribe-form button:hover {
   background-color: #fff;
   color: #000;
 }
@@ -991,7 +1005,6 @@ body {
 
 /* Footer Section */
 
-
 .footer {
   background: #111;
   color: white;
@@ -1005,8 +1018,8 @@ body {
   padding: 0 30px 50px;
 
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 50px;
 }
 
 .footer-column {

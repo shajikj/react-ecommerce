@@ -1,0 +1,47 @@
+.indoor-page {
+  width: 100%;
+  padding: 58px 30px 80px;
+  background: #fff;
+  color: #111;
+}
+
+.indoor-page-heading {
+  max-width: 1200px;
+  margin: 0 auto 34px;
+  text-align: left;
+}
+
+.indoor-page-heading p {
+  margin: 0 0 8px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.indoor-page-heading h1 {
+  margin: 0;
+  color: #111;
+  font-size: clamp(32px, 4vw, 46px);
+  font-weight: 500;
+}
+
+.indoor-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.indoor-products-grid .product-card {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .indoor-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 500px) {
+  .indoor-page { padding: 42px 18px 60px; }
+  .indoor-products-grid { grid-template-columns: 1fr; }
+}

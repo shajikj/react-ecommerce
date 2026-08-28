@@ -1,6 +1,19 @@
-function ProductCard({ product }) {
+function ProductCard({ product, onSelect }) {
+  const openProduct = () => onSelect?.(product);
+
   return (
-    <div className="product-card">
+    <div
+      className={`product-card${onSelect ? " product-card-link" : ""}`}
+      onClick={onSelect ? openProduct : undefined}
+      onKeyDown={(event) => {
+        if (onSelect && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          openProduct();
+        }
+      }}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+    >
 
       <div className="product-image-container">
 

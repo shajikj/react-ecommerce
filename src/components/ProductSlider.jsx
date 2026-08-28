@@ -1,13 +1,15 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from "react";
 import ProductCard from "./ProductCard";
 
-function ProductSlider() {
-  const products = [
+// Kept here because this slider is the current source of product data.
+export const products = [
     {
       id: 1,
       name: "UNITED 007",
       price: "1,899",
       image: "/products/pro1.webp",
+      category: "Outdoor",
       selectOptions: true,
     },
     {
@@ -15,6 +17,7 @@ function ProductSlider() {
       name: "S90 OUTDOOR",
       price: "1,699",
       image: "/products/pro2.webp",
+      category: "Indoor",
       selectOptions: true,
     },
     {
@@ -22,6 +25,7 @@ function ProductSlider() {
       name: "REAPER",
       price: "1,699",
       image: "/products/pro3.webp",
+      category: "Outdoor",
       colors: "2 colors",
       selectOptions: true,
     },
@@ -30,6 +34,7 @@ function ProductSlider() {
       name: "PHAMTOM",
       price: "1,799",
       image: "/products/pro4.webp",
+      category: "Outdoor",
       selectOptions: true,
     },
     {
@@ -37,6 +42,7 @@ function ProductSlider() {
       name: "ZETA+",
       price: "1,999",
       image: "/products/pro5.webp",
+      category: "Indoor",
       selectOptions: true,
     },
     {
@@ -44,9 +50,12 @@ function ProductSlider() {
       name: "UNITED 007",
       price: "1,899",
       image: "/products/pro6.webp",
+      category: "Outdoor",
       selectOptions: true,
     },
-  ];
+];
+
+function ProductSlider({ onProductSelect }) {
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -106,6 +115,7 @@ function ProductSlider() {
               <ProductCard
                 key={product.id}
                 product={product}
+                onSelect={onProductSelect}
               />
             ))}
           </div>

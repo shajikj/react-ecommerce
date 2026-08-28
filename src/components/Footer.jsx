@@ -5,7 +5,7 @@ function Footer() {
         <div className="footer-column">
           <h3>SHOP</h3>
 
-          <a href="#">Home</a>
+          <a href="?page=home">Home</a>
           <a href="#">Indoor</a>
           <a href="#">Outdoor</a>
           <a href="#">New Arrivals</a>
