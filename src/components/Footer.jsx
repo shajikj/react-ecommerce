@@ -6,8 +6,8 @@ function Footer() {
           <h3>SHOP</h3>
 
           <a href="?page=home">Home</a>
-          <a href="#">Indoor</a>
-          <a href="#">Outdoor</a>
+          <a href="?page=indoor">Indoor</a>
+          <a href="?page=outdoor">Outdoor</a>
           <a href="#">New Arrivals</a>
           <a href="#">Blog</a>
         </div>
@@ -15,7 +15,7 @@ function Footer() {
         <div className="footer-column">
           <h3>SUPPORT</h3>
 
-          <a href="#">Contact Us</a>
+          <a href="?page=contact">Contact Us</a>
           <a href="#">Track Order</a>
           <a href="#">Size Guide</a>
           <a href="#">FAQs</a>

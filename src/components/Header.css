@@ -4,7 +4,9 @@
 
 .site-header {
   width: 100%;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 1000;
 }
 
@@ -17,7 +19,7 @@
   display: flex;
   align-items: center;
   background: #fff;
-
+  border: solid 1px;
   position: relative;
   z-index: 1000;
 }
@@ -245,7 +247,7 @@
 .search-box input {
   width: 220px;
   height: 38px;
-
+  color: #111;
   border: none;
   outline: none;
 
@@ -283,4 +285,117 @@
 /* Show mega menu when hovering All Products */
 .nav-dropdown:hover .mega-menu {
   display: grid;
+}
+.shipping-bar {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.shipping-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: moveText 12s linear infinite;
+}
+
+@keyframes moveText {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+/* ================================
+   MOBILE MENU
+================================ */
+
+.mobile-menu-btn {
+  display: none;
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  cursor: pointer;
+  color: #111;
+}
+
+/* Sidebar */
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 280px;
+  height: 100vh;
+  background: #fff;
+  z-index: 9999;
+  padding: 70px 25px 30px;
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  transition: right 0.3s ease;
+}
+
+/* Open sidebar */
+.mobile-sidebar.open {
+  right: 0;
+}
+
+/* Sidebar links */
+.mobile-sidebar a {
+  text-decoration: none;
+  color: #111;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 0;
+}
+
+/* Close button */
+.mobile-close-btn {
+  position: absolute;
+  color: #111;
+  top: 20px;
+  right: 20px;
+  border: none;
+  background: transparent;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+/* ================================
+   MOBILE RESPONSIVE
+================================ */
+
+@media (max-width: 768px) {
+
+  .nav-links {
+    display: none;
+  }
+
+  .search-box {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .header-actions {
+    gap: 10px;
+    padding-right: 15px;
+  }
+
+  .logo {
+    width: auto;
+    padding-left: 20px;
+  }
+
+  .navbar {
+    height: 65px;
+  }
+
+  .mega-menu {
+    display: none !important;
+  }
 }

@@ -3,22 +3,22 @@ function Categories() {
     {
       id: 1,
       image: "/categories/indoor.webp",
-      link: "#",
+      link: "?page=indoor",
     },
     {
       id: 2,
       image: "/categories/outdoor.webp",
-      link: "#",
+      link: "?page=outdoor",
     },
     {
       id: 3,
       image: "/categories/football.webp",
-      link: "#",
+      link: "/football",
     },
     {
       id: 4,
       image: "/categories/socks.webp",
-      link: "#",
+      link: "/socks",
     },
   ];
 

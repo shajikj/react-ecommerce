@@ -8,19 +8,25 @@ function Header({
   onAllProductsSelect,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
 
   return (
     <header className="site-header">
       {/* Top shipping bar */}
       <div className="shipping-bar">
-        FREE SHIPPING ACROSS INDIA · SHIPS WITHIN 6 DAYS
+        <div className="shipping-text">
+          FREE SHIPPING ACROSS INDIA · SHIPS WITHIN 6-8 DAYS
+        </div>
       </div>
 
       {/* Main navigation */}
       <div className="navbar">
         {/* Logo */}
         <div className="logo">
-          <img src="/logo.webp" alt="My Store" />
+          <a href="/">
+            <img src="/logo.webp" alt="Logo" />
+          </a>
         </div>
 
         {/* Navigation links */}
@@ -239,6 +245,27 @@ function Header({
             <i class="bi bi-bag icon-28"></i>
           </button>
         </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          ☰
+        </button>
+        <div className={`mobile-sidebar ${mobileMenuOpen ? "open" : ""}`}>
+  <button
+    className="mobile-close-btn"
+    onClick={() => setMobileMenuOpen(false)}
+  >
+    ✕
+  </button>
+
+  <a href="/">Home</a>
+  <a href="/about">About</a>
+  <a href="/products">All Products</a>
+  <a href="/indoor">Indoor</a>
+  <a href="/outdoor">Outdoor</a>
+  <a href="/contact">Contact</a>
+</div>
       </div>
     </header>
   );

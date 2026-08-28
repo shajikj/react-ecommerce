@@ -14,6 +14,7 @@ import About from "./pages/About";
 import Indoor from "./pages/Indoor";
 import Outdoor from "./pages/Outdoor";
 import AllProducts from "./pages/AllProducts";
+import Contact  from "./pages/Contact";
 
 function App() {
   const getLocationState = () => {
@@ -24,7 +25,7 @@ function App() {
 
     return {
       product: products.find((product) => product.id === productId) || null,
-      page: ["about", "indoor", "outdoor", "all-products"].includes(page)
+      page: ["about", "indoor", "outdoor", "all-products", "contact"].includes(page)
         ? page
         : null,
     };
@@ -87,6 +88,7 @@ function App() {
         onIndoorSelect={() => openPage("indoor")}
         onOutdoorSelect={() => openPage("outdoor")}
         onAllAllProductsSelect={() => onpagehide("all-products")}
+        onContactSelect={() => openPage("contact")}
       />
       {selectedProduct ? (
         <ProductView
@@ -104,6 +106,8 @@ function App() {
         <Outdoor products={products} onProductSelect={openProduct} />
       ) : activePage === "all-products" ? (
         <AllProducts products={products} onProductSelect={openProduct} />
+      ) : activePage === "contact" ? (
+  <Contact />
       ) : (
         <>
           <HeroSlider />
