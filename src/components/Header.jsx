@@ -136,7 +136,7 @@ function Header({
             </a>
 
             {activeMenu === "outdoor" && (
-              <div
+              <div 
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >

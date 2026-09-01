@@ -3,25 +3,22 @@
 ================================ */
 
 .site-header {
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background: #fff; 
 }
 
-/* ================================
-   NAVBAR
-================================ */
-
 .navbar {
-  height: 74px;
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border: solid 1px;
-  position: relative;
-  z-index: 1000;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ddd;
+    position: relative;
+    z-index: 1000;
 }
 
 /* ================================
@@ -103,7 +100,9 @@
 
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
-
+.main-content {
+    padding-top: 74px;
+}
 /* Animation */
 
 @keyframes menuFade {

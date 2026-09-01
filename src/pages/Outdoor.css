@@ -1,8 +1,9 @@
 .outdoor-page {
   width: 100%;
-  padding: 120px 30px 80px;
+  padding: 120px 30px 0px;
   background: #fff;
   color: #111;
+  border: solid 1px;
 }
 
 .outdoor-page-heading {
@@ -31,6 +32,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   max-width: 1200px;
   margin: 0 auto;
+  border: solid 1px;
 }
 
 .outdoor-products-grid .product-card {

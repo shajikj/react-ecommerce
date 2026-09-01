@@ -1,5 +1,5 @@
 .all-products-page {
-  padding: 120px 30px 80px;
+  padding: 120px 30px 0px;
   background: #fff;
   min-height: 70vh;
 }
@@ -38,6 +38,7 @@
 @media (max-width: 992px) {
   .all-products-grid {
     grid-template-columns: repeat(3, 1fr);
+    border: solid 1px;
   }
 }
 
