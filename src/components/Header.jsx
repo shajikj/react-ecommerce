@@ -6,10 +6,14 @@ function Header({
   onIndoorSelect,
   onOutdoorSelect,
   onAllProductsSelect,
+  onContactSelect,
+  onLoginSelect,
+  onRegisterSelect,
+  customer,
+  onLogout,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
 
   return (
     <header className="site-header">
@@ -136,7 +140,7 @@ function Header({
             </a>
 
             {activeMenu === "outdoor" && (
-              <div 
+              <div
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >
@@ -237,9 +241,25 @@ function Header({
             </button>
           </div>
 
-          <button className="header-icon" type="button">
-            <i class="bi bi-person icon-28"></i>
-          </button>
+          {customer ? (
+            <button
+              className="header-icon"
+              type="button"
+              onClick={onLogout}
+              title="Logout"
+            >
+              <i className="bi bi-box-arrow-right icon-28"></i>
+            </button>
+          ) : (
+            <button
+              className="header-icon"
+              type="button"
+              onClick={onLoginSelect}
+              title="Login"
+            >
+              <i className="bi bi-person icon-28"></i>
+            </button>
+          )}
 
           <button className="header-icon cart-icon" type="button">
             <i class="bi bi-bag icon-28"></i>
@@ -252,20 +272,20 @@ function Header({
           ☰
         </button>
         <div className={`mobile-sidebar ${mobileMenuOpen ? "open" : ""}`}>
-  <button
-    className="mobile-close-btn"
-    onClick={() => setMobileMenuOpen(false)}
-  >
-    ✕
-  </button>
+          <button
+            className="mobile-close-btn"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            ✕
+          </button>
 
-  <a href="/">Home</a>
-  <a href="/about">About</a>
-  <a href="/products">All Products</a>
-  <a href="/indoor">Indoor</a>
-  <a href="/outdoor">Outdoor</a>
-  <a href="/contact">Contact</a>
-</div>
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/products">All Products</a>
+          <a href="/indoor">Indoor</a>
+          <a href="/outdoor">Outdoor</a>
+          <a href="/contact">Contact</a>
+        </div>
       </div>
     </header>
   );

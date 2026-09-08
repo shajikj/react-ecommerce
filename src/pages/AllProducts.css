@@ -45,7 +45,7 @@
 /* Mobile */
 @media (max-width: 768px) {
   .all-products-page {
-    padding: 40px 20px 60px;
+    padding: 90px 20px 60px;
   }
 
   .all-products-header h1 {
@@ -53,14 +53,15 @@
   }
 
   .all-products-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
   }
 }
 
-/* Small mobile */
+/* Small mobile - still 2 columns */
 @media (max-width: 480px) {
   .all-products-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 }
