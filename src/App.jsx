@@ -10,7 +10,7 @@ import CustomerReviews from "./components/CustomerReviews";
 import Subscribe from "./components/Subscribe";
 import Footer from "./components/Footer";
 
-import { products } from "./components/ProductSlider";
+// import { products } from "./components/ProductSlider";
 
 import ProductView from "./pages/ProductView";
 import About from "./pages/About";
@@ -21,15 +21,12 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-
 function App() {
-
   /* =========================
      GET CURRENT URL STATE
   ========================= */
 
   const getLocationState = () => {
-
     const params = new URLSearchParams(window.location.search);
 
     const productId = Number(params.get("product"));
@@ -37,8 +34,7 @@ function App() {
     const page = params.get("page");
 
     return {
-      product:
-        products.find((product) => product.id === productId) || null,
+      product: null,
 
       page: [
         "about",
@@ -54,19 +50,16 @@ function App() {
     };
   };
 
-
   /* =========================
      PAGE STATES
   ========================= */
 
   const [selectedProduct, setSelectedProduct] = useState(
-    () => getLocationState().product
+    () => getLocationState().product,
   );
 
-  const [activePage, setActivePage] = useState(
-    () => getLocationState().page
-  );
-
+  const [activePage, setActivePage] = useState(() => getLocationState().page);
+  const [previousPage, setPreviousPage] = useState("all-products");
 
   /* =========================
      CUSTOMER AUTHENTICATION
@@ -76,23 +69,21 @@ function App() {
 
   const [checkingSession, setCheckingSession] = useState(true);
 
+  const [apiProducts, setApiProducts] = useState([]);
 
   /* =========================
      CHECK PHP SESSION
   ========================= */
 
   useEffect(() => {
-
     const checkSession = async () => {
-
       try {
-
         const response = await fetch(
           "http://localhost/react-backend/api/customer/check-session.php",
           {
             method: "GET",
             credentials: "include",
-          }
+          },
         );
 
         const data = await response.json();
@@ -100,79 +91,95 @@ function App() {
         console.log("Session Check:", data);
 
         if (data.logged_in) {
-
           setCustomer(data.customer);
-
         } else {
-
           setCustomer(null);
-
         }
-
       } catch (error) {
-
-        console.error(
-          "Session check failed:",
-          error
-        );
+        console.error("Session check failed:", error);
 
         setCustomer(null);
-
       } finally {
-
         setCheckingSession(false);
-
       }
     };
 
     checkSession();
-
   }, []);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost/react-backend/api/product/list.php",
+        );
+
+        const data = await response.json();
+
+        console.log("Product API Response:", data);
+
+        if (data.status) {
+          const formattedProducts = data.data.map((product) => ({
+            id: Number(product.product_id),
+            name: product.product_name,
+            image: product.product_image
+              ? `http://localhost/react-backend/api/assets/images/products/${product.product_image}`
+              : "",
+            price: product.Price,
+            colors: product.product_color,
+            shoeSize: product.shoe_size,
+            description: product.description,
+            details: product.product_details,
+            categoryId: Number(product.category_id),
+            categoryName: product.category_name,
+            status: Number(product.status),
+          }));
+
+          setApiProducts(formattedProducts);
+        }
+      } catch (error) {
+        console.error("Product fetch failed:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   /* =========================
      BROWSER BACK / FORWARD
   ========================= */
 
   useEffect(() => {
-
     const handlePopState = () => {
-
       const locationState = getLocationState();
 
       setSelectedProduct(locationState.product);
 
       setActivePage(locationState.page);
-
     };
 
-    window.addEventListener(
-      "popstate",
-      handlePopState
-    );
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-
-      window.removeEventListener(
-        "popstate",
-        handlePopState
-      );
-
+      window.removeEventListener("popstate", handlePopState);
     };
-
   }, []);
-
 
   /* =========================
      OPEN PRODUCT
   ========================= */
 
   const openProduct = (product) => {
+    if (activePage) {
+      setPreviousPage(activePage);
+    } else {
+      setPreviousPage("home");
+    }
 
     window.history.pushState(
       {},
       "",
-      `${window.location.pathname}?product=${product.id}`
+      `${window.location.pathname}?product=${product.id}`,
     );
 
     setSelectedProduct(product);
@@ -185,40 +192,41 @@ function App() {
     });
   };
 
-
   /* =========================
      CLOSE PRODUCT
   ========================= */
 
   const closeProduct = () => {
-
-    window.history.pushState(
-      {},
-      "",
-      `${window.location.pathname}?page=all-products`
-    );
+    if (previousPage === "home") {
+      window.history.pushState({}, "", window.location.pathname);
+    } else {
+      window.history.pushState(
+        {},
+        "",
+        `${window.location.pathname}?page=${previousPage}`,
+      );
+    }
 
     setSelectedProduct(null);
-
-    setActivePage("all-products");
-
+    setActivePage(previousPage === "home" ? null : previousPage);
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   };
 
-
   /* =========================
      OPEN PAGE
   ========================= */
 
   const openPage = (page) => {
-
+    if (page) {
+      setPreviousPage(page);
+    }
     window.history.pushState(
       {},
       "",
-      `${window.location.pathname}?page=${page}`
+      `${window.location.pathname}?page=${page}`,
     );
 
     setSelectedProduct(null);
@@ -231,35 +239,29 @@ function App() {
     });
   };
 
-
   /* =========================
      LOGIN SUCCESS
   ========================= */
 
   const handleLoginSuccess = (customerData) => {
-
     setCustomer(customerData);
 
     // Go to home page
     openPage(null);
-
   };
-
 
   /* =========================
      LOGOUT
   ========================= */
 
   const handleLogout = async () => {
-
     try {
-
       const response = await fetch(
         "http://localhost/react-backend/api/customer/logout.php",
         {
           method: "POST",
           credentials: "include",
-        }
+        },
       );
 
       const data = await response.json();
@@ -267,30 +269,20 @@ function App() {
       console.log("Logout Response:", data);
 
       if (data.success) {
-
         setCustomer(null);
 
         openPage(null);
-
       }
-
     } catch (error) {
-
-      console.error(
-        "Logout failed:",
-        error
-      );
-
+      console.error("Logout failed:", error);
     }
   };
-
 
   /* =========================
      SESSION CHECK LOADING
   ========================= */
 
   if (checkingSession) {
-
     return (
       <div
         style={{
@@ -303,9 +295,7 @@ function App() {
         Checking login...
       </div>
     );
-
   }
-
 
   /* =========================
      RENDER
@@ -313,112 +303,53 @@ function App() {
 
   return (
     <>
-
       {/* =========================
           HEADER
       ========================= */}
 
       <Header
-
+        products={apiProducts}
         customer={customer}
-
         onLogout={handleLogout}
-
-        onAboutSelect={() =>
-          openPage("about")
-        }
-
-        onIndoorSelect={() =>
-          openPage("indoor")
-        }
-
-        onOutdoorSelect={() =>
-          openPage("outdoor")
-        }
-
-        onAllAllProductsSelect={() =>
-          openPage("all-products")
-        }
-
-        onContactSelect={() =>
-          openPage("contact")
-        }
-
-        onLoginSelect={() =>
-          openPage("login")
-        }
-
-        onRegisterSelect={() =>
-          openPage("register")
-        }
-        
-
+        onAboutSelect={() => openPage("about")}
+        onIndoorSelect={() => openPage("indoor")}
+        onOutdoorSelect={() => openPage("outdoor")}
+        onAllAllProductsSelect={() => openPage("all-products")}
+        onContactSelect={() => openPage("contact")}
+        onLoginSelect={() => openPage("login")}
+        onRegisterSelect={() => openPage("register")}
       />
-
 
       {/* =========================
           PRODUCT VIEW
       ========================= */}
 
       {selectedProduct ? (
-
         <ProductView
           key={selectedProduct.id}
           product={selectedProduct}
-          products={products}
+          products={apiProducts}
           onBack={closeProduct}
           onProductSelect={openProduct}
         />
-
       ) : activePage === "about" ? (
-
         <About />
-
       ) : activePage === "indoor" ? (
-
-        <Indoor
-          products={products}
-          onProductSelect={openProduct}
-        />
-
+        <Indoor products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "outdoor" ? (
-
-        <Outdoor
-          products={products}
-          onProductSelect={openProduct}
-        />
-
+        <Outdoor products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "all-products" ? (
-
-        <AllProducts
-          products={products}
-          onProductSelect={openProduct}
-        />
-
+        <AllProducts products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "contact" ? (
-
         <Contact />
-
       ) : activePage === "login" ? (
-
         <Login
-          onRegister={() =>
-            openPage("register")
-          }
-
+          onRegister={() => openPage("register")}
           onLoginSuccess={handleLoginSuccess}
         />
-
       ) : activePage === "register" ? (
-
-        <Register
-          onLogin={() =>
-            openPage("login")
-          }
-        />
-
+        <Register onLogin={() => openPage("login")} />
       ) : (
-
         /* =========================
            HOME PAGE
         ========================= */
@@ -426,9 +357,7 @@ function App() {
         <>
           <HeroSlider />
 
-          <ProductSlider
-            onProductSelect={openProduct}
-          />
+          <ProductSlider products={apiProducts} onProductSelect={openProduct} />
 
           <Categories />
 
@@ -438,19 +367,15 @@ function App() {
 
           <Subscribe />
         </>
-
       )}
-
 
       {/* =========================
           FOOTER
       ========================= */}
 
       <Footer />
-
     </>
   );
 }
-
 
 export default App;

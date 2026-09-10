@@ -2,18 +2,24 @@ import { useState } from "react";
 import "./Header.css";
 
 function Header({
+  products,
   onAboutSelect,
   onIndoorSelect,
   onOutdoorSelect,
   onAllProductsSelect,
-  onContactSelect,
+  // onContactSelect,
   onLoginSelect,
-  onRegisterSelect,
+  // onRegisterSelect,
   customer,
   onLogout,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const indoorProducts = products.filter((product) => product.categoryId === 1);
+
+  const outdoorProducts = products.filter(
+    (product) => product.categoryId === 2,
+  );
 
   return (
     <header className="site-header">

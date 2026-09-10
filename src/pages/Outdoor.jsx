@@ -2,7 +2,8 @@ import ProductCard from "../components/ProductCard";
 import "./Outdoor.css";
 
 function Outdoor({ products, onProductSelect }) {
-  const outdoorProducts = products.filter((product) => product.category === "Outdoor");
+  const outdoorProducts = products.filter((product) => product.categoryId === 2,
+  );
 
   return (
     <main className="outdoor-page">
@@ -12,7 +13,11 @@ function Outdoor({ products, onProductSelect }) {
       </header>
       <section className="outdoor-products-grid" aria-label="Outdoor products">
         {outdoorProducts.map((product) => (
-          <ProductCard key={product.id} product={product} onSelect={onProductSelect} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            onSelect={onProductSelect}
+          />
         ))}
       </section>
     </main>

@@ -2,7 +2,7 @@ import ProductCard from "../components/ProductCard";
 import "./Indoor.css";
 
 function Indoor({ products, onProductSelect }) {
-  const indoorProducts = products.filter((product) => product.category === "Indoor");
+  const indoorProducts = products.filter((product) => product.categoryId === 1);
 
   return (
     <main className="indoor-page">
@@ -12,7 +12,11 @@ function Indoor({ products, onProductSelect }) {
       </header>
       <section className="indoor-products-grid" aria-label="Indoor products">
         {indoorProducts.map((product) => (
-          <ProductCard key={product.id} product={product} onSelect={onProductSelect} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            onSelect={onProductSelect}
+          />
         ))}
       </section>
     </main>
