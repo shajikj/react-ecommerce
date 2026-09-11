@@ -21,6 +21,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Cart from "./pages/Cart";
+import CheckOut from "./components/CheckOut";
 
 function App() {
   /* =========================
@@ -46,6 +47,7 @@ function App() {
         "login",
         "register",
         "cart",
+        "checkout",
       ].includes(page)
         ? page
         : null,
@@ -79,28 +81,26 @@ function App() {
   // cart section
 
   const addToCart = (product) => {
-  setCart((prevCart) => {
-    const existingProduct = prevCart.find(
-      (item) =>
-        item.id === product.id &&
-        item.selectedSize === product.selectedSize
-    );
-
-    if (existingProduct) {
-      return prevCart.map((item) =>
-        item.id === product.id &&
-        item.selectedSize === product.selectedSize
-          ? {
-              ...item,
-              quantity: item.quantity + product.quantity,
-            }
-          : item
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find(
+        (item) =>
+          item.id === product.id && item.selectedSize === product.selectedSize,
       );
-    }
 
-    return [...prevCart, product];
-  });
-};
+      if (existingProduct) {
+        return prevCart.map((item) =>
+          item.id === product.id && item.selectedSize === product.selectedSize
+            ? {
+                ...item,
+                quantity: item.quantity + product.quantity,
+              }
+            : item,
+        );
+      }
+
+      return [...prevCart, product];
+    });
+  };
 
   /* =========================
      CHECK PHP SESSION
@@ -356,7 +356,6 @@ function App() {
       {/* =========================
           PRODUCT VIEW
       ========================= */}
-
       {selectedProduct ? (
         <ProductView
           key={selectedProduct.id}
@@ -375,7 +374,13 @@ function App() {
       ) : activePage === "all-products" ? (
         <AllProducts products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "cart" ? (
-        <Cart cart={cart} onBack={() => openPage("all-products")} />
+        <Cart
+          cart={cart}
+          onBack={() => openPage("all-products")}
+          onCheckout={() => openPage("checkout")}
+        />
+      ) : activePage === "checkout" ? (
+        <CheckOut cart={cart} onBack={() => openPage("cart")} />
       ) : activePage === "contact" ? (
         <Contact />
       ) : activePage === "login" ? (
@@ -386,10 +391,6 @@ function App() {
       ) : activePage === "register" ? (
         <Register onLogin={() => openPage("login")} />
       ) : (
-        /* =========================
-           HOME PAGE
-        ========================= */
-
         <>
           <HeroSlider />
 
