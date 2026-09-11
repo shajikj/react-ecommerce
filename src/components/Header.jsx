@@ -7,22 +7,27 @@ function Header({
   onIndoorSelect,
   onOutdoorSelect,
   onAllProductsSelect,
-  // onContactSelect,
   onLoginSelect,
-  // onRegisterSelect,
   customer,
   onLogout,
+  onProductSelect,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const indoorProducts = products.filter((product) => product.categoryId === 1);
 
-  const outdoorProducts = products.filter(
-    (product) => product.categoryId === 2,
+  // Get Indoor products
+  const indoorProducts = (products || []).filter(
+    (product) => Number(product.categoryId) === 1
+  );
+
+  // Get Outdoor products
+  const outdoorProducts = (products || []).filter(
+    (product) => Number(product.categoryId) === 2
   );
 
   return (
     <header className="site-header">
+
       {/* Top shipping bar */}
       <div className="shipping-bar">
         <div className="shipping-text">
@@ -32,6 +37,7 @@ function Header({
 
       {/* Main navigation */}
       <div className="navbar">
+
         {/* Logo */}
         <div className="logo">
           <a href="/">
@@ -41,7 +47,8 @@ function Header({
 
         {/* Navigation links */}
         <nav className="nav-links">
-          {/* INDOOR */}
+
+          {/* ================= INDOOR ================= */}
           <div
             className="nav-dropdown"
             onMouseEnter={() => setActiveMenu("indoor")}
@@ -63,44 +70,58 @@ function Header({
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >
-                {/* Featured product */}
-                <div className="featured-menu-product">
-                  <div className="menu-title">INDOOR</div>
 
-                  <img src="/products/pro1.webp" alt="Indoor" />
+                {/* Featured Indoor Product */}
+                {indoorProducts.length > 0 && (
+                  <div
+                    className="featured-menu-product"
+                    onClick={() =>
+                      onProductSelect?.(indoorProducts[0])
+                    }
+                  >
+                    <div className="menu-title">INDOOR</div>
 
-                  <button type="button" onClick={onIndoorSelect}>
-                    SHOP ALL
-                  </button>
-                </div>
+                    <img
+                      src={indoorProducts[0].image}
+                      alt={indoorProducts[0].name}
+                    />
 
-                {/* Product 1 */}
-                <div className="menu-product">
-                  <img src="/products/pro2.webp" alt="Midfield" />
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
 
-                  <h3>MIDFIELD</h3>
-                </div>
+                        if (onIndoorSelect) {
+                          onIndoorSelect();
+                        }
+                      }}
+                    >
+                      SHOP ALL
+                    </button>
+                  </div>
+                )}
 
-                {/* Product 2 */}
-                <div className="menu-product">
-                  <img src="/products/pro3.webp" alt="Turf" />
+                {/* Indoor Products 2, 3 and 4 */}
+                {indoorProducts.slice(1, 4).map((product) => (
+                  <div
+                    className="menu-product"
+                    key={product.id}
+                    onClick={() =>
+                      onProductSelect?.(product)
+                    }
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                    />
 
-                  <h3>
-                    TURF, STRIKERS,
-                    <br />
-                    MIDFIELDERS
-                  </h3>
-                </div>
-
-                {/* Product 3 */}
-                <div className="menu-product">
-                  <img src="/products/pro4.webp" alt="Wingers" />
-
-                  <h3>WINGERS</h3>
-                </div>
+                    <h3>{product.name}</h3>
+                  </div>
+                ))}
 
                 {/* Right side links */}
                 <div className="menu-side-links">
+
                   <a href="#">NEW IN</a>
 
                   <a href="#">
@@ -123,12 +144,14 @@ function Header({
                   >
                     VIEW ALL INDOOR
                   </a>
+
                 </div>
               </div>
             )}
           </div>
 
-          {/* OUTDOOR */}
+
+          {/* ================= OUTDOOR ================= */}
           <div
             className="nav-dropdown"
             onMouseEnter={() => setActiveMenu("outdoor")}
@@ -150,39 +173,58 @@ function Header({
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >
-                <div className="featured-menu-product">
-                  <div className="menu-title">OUTDOOR</div>
 
-                  <img src="/products/pro1.webp" alt="Outdoor" />
+                {/* Featured Outdoor Product */}
+                {outdoorProducts.length > 0 && (
+                  <div
+                    className="featured-menu-product"
+                    onClick={() =>
+                      onProductSelect?.(outdoorProducts[0])
+                    }
+                  >
+                    <div className="menu-title">OUTDOOR</div>
 
-                  <button type="button" onClick={onOutdoorSelect}>
-                    SHOP ALL
-                  </button>
-                </div>
+                    <img
+                      src={outdoorProducts[0].image}
+                      alt={outdoorProducts[0].name}
+                    />
 
-                <div className="menu-product">
-                  <img src="/products/pro2.webp" alt="Outdoor" />
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
 
-                  <h3>FORWARD</h3>
-                </div>
+                        if (onOutdoorSelect) {
+                          onOutdoorSelect();
+                        }
+                      }}
+                    >
+                      SHOP ALL
+                    </button>
+                  </div>
+                )}
 
-                <div className="menu-product">
-                  <img src="/products/pro3.webp" alt="Outdoor" />
+                {/* Outdoor Products 2, 3 and 4 */}
+                {outdoorProducts.slice(1, 4).map((product) => (
+                  <div
+                    className="menu-product"
+                    key={product.id}
+                    onClick={() =>
+                      onProductSelect?.(product)
+                    }
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                    />
 
-                  <h3>
-                    MIDFIELD,
-                    <br />
-                    CONTROL
-                  </h3>
-                </div>
+                    <h3>{product.name}</h3>
+                  </div>
+                ))}
 
-                <div className="menu-product">
-                  <img src="/products/pro4.webp" alt="Outdoor" />
-
-                  <h3>DEFENDERS</h3>
-                </div>
-
+                {/* Right side links */}
                 <div className="menu-side-links">
+
                   <a href="#">NEW IN</a>
 
                   <a href="#">
@@ -205,13 +247,14 @@ function Header({
                   >
                     VIEW ALL OUTDOOR
                   </a>
+
                 </div>
               </div>
             )}
           </div>
 
-          {/* Other links */}
 
+          {/* ================= ALL PRODUCTS ================= */}
           <a
             href="?page=all-products"
             onClick={(event) => {
@@ -224,6 +267,8 @@ function Header({
             ALL PRODUCTS
           </a>
 
+
+          {/* ================= ABOUT ================= */}
           <a
             href="?page=about"
             onClick={(event) => {
@@ -235,18 +280,27 @@ function Header({
           >
             ABOUT
           </a>
+
         </nav>
 
-        {/* Right side */}
+
+        {/* ================= RIGHT SIDE ================= */}
         <div className="header-actions">
+
+          {/* Search */}
           <div className="search-box">
-            <input type="text" placeholder="Search" />
+            <input
+              type="text"
+              placeholder="Search"
+            />
 
             <button type="button">
-              <i class="bi bi-search icon-16"></i>
+              <i className="bi bi-search icon-16"></i>
             </button>
           </div>
 
+
+          {/* Login / Logout */}
           {customer ? (
             <button
               className="header-icon"
@@ -267,17 +321,33 @@ function Header({
             </button>
           )}
 
-          <button className="header-icon cart-icon" type="button">
-            <i class="bi bi-bag icon-28"></i>
+
+          {/* Cart */}
+          <button
+            className="header-icon cart-icon"
+            type="button"
+          >
+            <i className="bi bi-bag icon-28"></i>
           </button>
+
         </div>
+
+
+        {/* ================= MOBILE MENU ================= */}
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(true)}
         >
           ☰
         </button>
-        <div className={`mobile-sidebar ${mobileMenuOpen ? "open" : ""}`}>
+
+
+        <div
+          className={`mobile-sidebar ${
+            mobileMenuOpen ? "open" : ""
+          }`}
+        >
+
           <button
             className="mobile-close-btn"
             onClick={() => setMobileMenuOpen(false)}
@@ -291,7 +361,9 @@ function Header({
           <a href="/indoor">Indoor</a>
           <a href="/outdoor">Outdoor</a>
           <a href="/contact">Contact</a>
+
         </div>
+
       </div>
     </header>
   );
