@@ -20,6 +20,7 @@ import AllProducts from "./pages/AllProducts";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Cart from "./pages/Cart";
 
 function App() {
   /* =========================
@@ -44,6 +45,7 @@ function App() {
         "contact",
         "login",
         "register",
+        "cart",
       ].includes(page)
         ? page
         : null,
@@ -70,6 +72,35 @@ function App() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   const [apiProducts, setApiProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  // cart section
+
+  const addToCart = (product) => {
+  setCart((prevCart) => {
+    const existingProduct = prevCart.find(
+      (item) =>
+        item.id === product.id &&
+        item.selectedSize === product.selectedSize
+    );
+
+    if (existingProduct) {
+      return prevCart.map((item) =>
+        item.id === product.id &&
+        item.selectedSize === product.selectedSize
+          ? {
+              ...item,
+              quantity: item.quantity + product.quantity,
+            }
+          : item
+      );
+    }
+
+    return [...prevCart, product];
+  });
+};
 
   /* =========================
      CHECK PHP SESSION
@@ -311,15 +342,17 @@ function App() {
         products={apiProducts}
         customer={customer}
         onLogout={handleLogout}
+        cart={cart}
+        cartCount={cartCount}
+        cartOpen={cartOpen}
+        setCartOpen={setCartOpen}
         onAboutSelect={() => openPage("about")}
         onIndoorSelect={() => openPage("indoor")}
         onOutdoorSelect={() => openPage("outdoor")}
-        onAllAllProductsSelect={() => openPage("all-products")}
-        onContactSelect={() => openPage("contact")}
+        onAllProductsSelect={() => openPage("all-products")}
         onLoginSelect={() => openPage("login")}
         onRegisterSelect={() => openPage("register")}
       />
-
       {/* =========================
           PRODUCT VIEW
       ========================= */}
@@ -331,6 +364,7 @@ function App() {
           products={apiProducts}
           onBack={closeProduct}
           onProductSelect={openProduct}
+          addToCart={addToCart}
         />
       ) : activePage === "about" ? (
         <About />
@@ -340,6 +374,8 @@ function App() {
         <Outdoor products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "all-products" ? (
         <AllProducts products={apiProducts} onProductSelect={openProduct} />
+      ) : activePage === "cart" ? (
+        <Cart cart={cart} onBack={() => openPage("all-products")} />
       ) : activePage === "contact" ? (
         <Contact />
       ) : activePage === "login" ? (

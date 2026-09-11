@@ -11,23 +11,25 @@ function Header({
   customer,
   onLogout,
   onProductSelect,
+  cartCount,
+  cart,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   // Get Indoor products
   const indoorProducts = (products || []).filter(
-    (product) => Number(product.categoryId) === 1
+    (product) => Number(product.categoryId) === 1,
   );
 
   // Get Outdoor products
   const outdoorProducts = (products || []).filter(
-    (product) => Number(product.categoryId) === 2
+    (product) => Number(product.categoryId) === 2,
   );
 
   return (
     <header className="site-header">
-
       {/* Top shipping bar */}
       <div className="shipping-bar">
         <div className="shipping-text">
@@ -37,7 +39,6 @@ function Header({
 
       {/* Main navigation */}
       <div className="navbar">
-
         {/* Logo */}
         <div className="logo">
           <a href="/">
@@ -47,7 +48,6 @@ function Header({
 
         {/* Navigation links */}
         <nav className="nav-links">
-
           {/* ================= INDOOR ================= */}
           <div
             className="nav-dropdown"
@@ -70,14 +70,11 @@ function Header({
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >
-
                 {/* Featured Indoor Product */}
                 {indoorProducts.length > 0 && (
                   <div
                     className="featured-menu-product"
-                    onClick={() =>
-                      onProductSelect?.(indoorProducts[0])
-                    }
+                    onClick={() => onProductSelect?.(indoorProducts[0])}
                   >
                     <div className="menu-title">INDOOR</div>
 
@@ -106,14 +103,9 @@ function Header({
                   <div
                     className="menu-product"
                     key={product.id}
-                    onClick={() =>
-                      onProductSelect?.(product)
-                    }
+                    onClick={() => onProductSelect?.(product)}
                   >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                    />
+                    <img src={product.image} alt={product.name} />
 
                     <h3>{product.name}</h3>
                   </div>
@@ -121,7 +113,6 @@ function Header({
 
                 {/* Right side links */}
                 <div className="menu-side-links">
-
                   <a href="#">NEW IN</a>
 
                   <a href="#">
@@ -144,12 +135,10 @@ function Header({
                   >
                     VIEW ALL INDOOR
                   </a>
-
                 </div>
               </div>
             )}
           </div>
-
 
           {/* ================= OUTDOOR ================= */}
           <div
@@ -173,14 +162,11 @@ function Header({
                 className="mega-menu"
                 onMouseLeave={() => setActiveMenu(null)}
               >
-
                 {/* Featured Outdoor Product */}
                 {outdoorProducts.length > 0 && (
                   <div
                     className="featured-menu-product"
-                    onClick={() =>
-                      onProductSelect?.(outdoorProducts[0])
-                    }
+                    onClick={() => onProductSelect?.(outdoorProducts[0])}
                   >
                     <div className="menu-title">OUTDOOR</div>
 
@@ -209,14 +195,9 @@ function Header({
                   <div
                     className="menu-product"
                     key={product.id}
-                    onClick={() =>
-                      onProductSelect?.(product)
-                    }
+                    onClick={() => onProductSelect?.(product)}
                   >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                    />
+                    <img src={product.image} alt={product.name} />
 
                     <h3>{product.name}</h3>
                   </div>
@@ -224,7 +205,6 @@ function Header({
 
                 {/* Right side links */}
                 <div className="menu-side-links">
-
                   <a href="#">NEW IN</a>
 
                   <a href="#">
@@ -247,12 +227,10 @@ function Header({
                   >
                     VIEW ALL OUTDOOR
                   </a>
-
                 </div>
               </div>
             )}
           </div>
-
 
           {/* ================= ALL PRODUCTS ================= */}
           <a
@@ -267,7 +245,6 @@ function Header({
             ALL PRODUCTS
           </a>
 
-
           {/* ================= ABOUT ================= */}
           <a
             href="?page=about"
@@ -280,25 +257,18 @@ function Header({
           >
             ABOUT
           </a>
-
         </nav>
-
 
         {/* ================= RIGHT SIDE ================= */}
         <div className="header-actions">
-
           {/* Search */}
           <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search"
-            />
+            <input type="text" placeholder="Search" />
 
             <button type="button">
               <i className="bi bi-search icon-16"></i>
             </button>
           </div>
-
 
           {/* Login / Logout */}
           {customer ? (
@@ -321,17 +291,132 @@ function Header({
             </button>
           )}
 
-
           {/* Cart */}
           <button
             className="header-icon cart-icon"
             type="button"
+            onClick={() => setCartOpen(true)}
           >
             <i className="bi bi-bag icon-28"></i>
+
+            {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
           </button>
+        </div>
+
+        {/* ================= CART DRAWER ================= */}
+
+{cartOpen && (
+  <div
+    className="cart-overlay"
+    onClick={() => setCartOpen(false)}
+  />
+)}
+
+<div className={`cart-drawer ${cartOpen ? "open" : ""}`}>
+
+  <div className="cart-drawer-header">
+    <h2>Your Cart</h2>
+
+    <button
+      type="button"
+      className="cart-close-button"
+      onClick={() => setCartOpen(false)}
+    >
+      ✕
+    </button>
+  </div>
+
+  {(!cart || cart.length === 0) ? (
+
+    <div className="cart-empty">
+      <i className="bi bi-bag"></i>
+
+      <h3>Your cart is empty</h3>
+
+      <p>
+        Looks like you haven't added anything yet.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setCartOpen(false)}
+      >
+        CONTINUE SHOPPING
+      </button>
+    </div>
+
+  ) : (
+
+    <>
+
+      <div className="cart-drawer-items">
+
+        {cart.map((item) => (
+
+          <div
+            className="cart-drawer-item"
+            key={`${item.id}-${item.selectedSize}`}
+          >
+
+            <img
+              src={item.image}
+              alt={item.name}
+            />
+
+            <div className="cart-item-info">
+
+              <h3>{item.name}</h3>
+
+              <p>Size: {item.selectedSize}</p>
+
+              <p>
+                Quantity: {item.quantity}
+              </p>
+
+              <strong>
+                ₹{Number(item.price) * item.quantity}
+              </strong>
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      <div className="cart-drawer-footer">
+
+        <div className="cart-total">
+
+          <span>Total</span>
+
+          <strong>
+            ₹
+            {cart.reduce(
+              (total, item) =>
+                total +
+                Number(item.price) * item.quantity,
+              0
+            )}
+          </strong>
 
         </div>
 
+        <button
+          type="button"
+          className="cart-checkout-button"
+        >
+          CHECKOUT
+        </button>
+
+      </div>
+
+    </>
+
+  )}
+
+</div>
 
         {/* ================= MOBILE MENU ================= */}
         <button
@@ -341,13 +426,7 @@ function Header({
           ☰
         </button>
 
-
-        <div
-          className={`mobile-sidebar ${
-            mobileMenuOpen ? "open" : ""
-          }`}
-        >
-
+        <div className={`mobile-sidebar ${mobileMenuOpen ? "open" : ""}`}>
           <button
             className="mobile-close-btn"
             onClick={() => setMobileMenuOpen(false)}
@@ -361,9 +440,7 @@ function Header({
           <a href="/indoor">Indoor</a>
           <a href="/outdoor">Outdoor</a>
           <a href="/contact">Contact</a>
-
         </div>
-
       </div>
     </header>
   );
