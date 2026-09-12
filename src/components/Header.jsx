@@ -17,6 +17,7 @@ function Header({
   cartOpen: propCartOpen,
   setCartOpen: propSetCartOpen,
   onCheckout,
+  onHomeSelect,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -452,8 +453,7 @@ function Header({
             className="mobile-nav-link"
             onClick={() => {
               setMobileMenuOpen(false);
-              window.history.pushState({}, "", window.location.pathname);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (onHomeSelect) onHomeSelect();
             }}
           >
             Home

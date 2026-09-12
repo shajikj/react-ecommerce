@@ -279,7 +279,7 @@ function App() {
     window.history.pushState(
       {},
       "",
-      `${window.location.pathname}?page=${page}`,
+      page ? `${window.location.pathname}?page=${page}` : window.location.pathname,
     );
 
     setSelectedProduct(null);
@@ -376,6 +376,8 @@ function App() {
         onRegisterSelect={() => openPage("register")}
         onContactSelect={() => openPage("contact")}
         onCheckout={() => openPage("checkout")}
+        onHomeSelect={() => openPage(null)}
+        onProductSelect={openProduct}
       />
       {/* =========================
           PRODUCT VIEW
