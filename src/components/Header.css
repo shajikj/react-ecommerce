@@ -342,12 +342,20 @@
 }
 
 /* Sidebar links */
-.mobile-sidebar a {
+.mobile-sidebar a,
+.mobile-nav-link {
   text-decoration: none;
   color: #111;
   font-size: 18px;
   font-weight: 600;
   padding: 10px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* Close button */

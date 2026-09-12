@@ -102,6 +102,28 @@ function App() {
     });
   };
 
+  const updateCartQuantity = (id, selectedSize, delta) => {
+    setCart((prevCart) =>
+      prevCart
+        .map((item) => {
+          if (item.id === id && item.selectedSize === selectedSize) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean),
+    );
+  };
+
+  const removeFromCart = (id, selectedSize) => {
+    setCart((prevCart) =>
+      prevCart.filter(
+        (item) => !(item.id === id && item.selectedSize === selectedSize),
+      ),
+    );
+  };
+
   /* =========================
      CHECK PHP SESSION
   ========================= */
@@ -352,6 +374,8 @@ function App() {
         onAllProductsSelect={() => openPage("all-products")}
         onLoginSelect={() => openPage("login")}
         onRegisterSelect={() => openPage("register")}
+        onContactSelect={() => openPage("contact")}
+        onCheckout={() => openPage("checkout")}
       />
       {/* =========================
           PRODUCT VIEW
@@ -378,6 +402,9 @@ function App() {
           cart={cart}
           onBack={() => openPage("all-products")}
           onCheckout={() => openPage("checkout")}
+          onUpdateQuantity={updateCartQuantity}
+          onRemoveItem={removeFromCart}
+          onProductSelect={openProduct}
         />
       ) : activePage === "checkout" ? (
         <CheckOut cart={cart} onBack={() => openPage("cart")} />

@@ -8,15 +8,22 @@ function Header({
   onOutdoorSelect,
   onAllProductsSelect,
   onLoginSelect,
+  onContactSelect,
   customer,
   onLogout,
   onProductSelect,
   cartCount,
   cart,
+  cartOpen: propCartOpen,
+  setCartOpen: propSetCartOpen,
+  onCheckout,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [localCartOpen, setLocalCartOpen] = useState(false);
+
+  const cartOpen = propCartOpen !== undefined ? propCartOpen : localCartOpen;
+  const setCartOpen = propSetCartOpen || setLocalCartOpen;
 
   // Get Indoor products
   const indoorProducts = (products || []).filter(
@@ -406,6 +413,12 @@ function Header({
         <button
           type="button"
           className="cart-checkout-button"
+          onClick={() => {
+            setCartOpen(false);
+            if (onCheckout) {
+              onCheckout();
+            }
+          }}
         >
           CHECKOUT
         </button>
@@ -434,12 +447,72 @@ function Header({
             ✕
           </button>
 
-          <a href="/">Home</a>
-          <a href="/about">About</a>
-          <a href="/products">All Products</a>
-          <a href="/indoor">Indoor</a>
-          <a href="/outdoor">Outdoor</a>
-          <a href="/contact">Contact</a>
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              window.history.pushState({}, "", window.location.pathname);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            Home
+          </button>
+
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (onAboutSelect) onAboutSelect();
+            }}
+          >
+            About
+          </button>
+
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (onAllProductsSelect) onAllProductsSelect();
+            }}
+          >
+            All Products
+          </button>
+
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (onIndoorSelect) onIndoorSelect();
+            }}
+          >
+            Indoor
+          </button>
+
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (onOutdoorSelect) onOutdoorSelect();
+            }}
+          >
+            Outdoor
+          </button>
+
+          <button
+            type="button"
+            className="mobile-nav-link"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (onContactSelect) onContactSelect();
+            }}
+          >
+            Contact
+          </button>
         </div>
       </div>
     </header>

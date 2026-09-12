@@ -1,7 +1,7 @@
 import "./CheckOut.css";
 
-function CheckOut({ cart, onBack }) {
-  const subtotal = cart.reduce(
+function CheckOut({ cart = [], onBack }) {
+  const subtotal = (cart || []).reduce(
     (total, item) =>
       total + Number(item.price) * Number(item.quantity),
     0
