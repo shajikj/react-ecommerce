@@ -610,10 +610,9 @@ body {
   transition: 0.3s;
 }
 
-.product-side-arrow:hover {
-  /* background: #111;
-  color: #fff; */
-}
+/* .product-side-arrow:hover {
+  
+} */
 
 .product-left-arrow {
   left: 18px;
