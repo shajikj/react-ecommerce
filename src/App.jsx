@@ -31,7 +31,7 @@ function App() {
   const getLocationState = () => {
     const params = new URLSearchParams(window.location.search);
 
-    const productId = Number(params.get("product"));
+    // const productId = Number(params.get("product"));
 
     const page = params.get("page");
 
