@@ -5,7 +5,13 @@ import "./ProductView.css";
 const defaultDescription =
   "Designed for confident performance, with a secure fit and dependable comfort from training through match day.";
 
-function ProductView({ product, products, onBack, onProductSelect,  addToCart: handleAddToCart, }) {
+function ProductView({
+  product,
+  products,
+  onBack,
+  onProductSelect,
+  addToCart: handleAddToCart,
+}) {
   const productImages = product.images?.length
     ? product.images
     : [product.image];
@@ -18,16 +24,16 @@ function ProductView({ product, products, onBack, onProductSelect,  addToCart: h
     .slice(0, 4);
 
   const addToCart = () => {
-  handleAddToCart({
-    ...product,
-    selectedSize,
-    quantity,
-  });
+    handleAddToCart({
+      ...product,
+      selectedSize,
+      quantity,
+    });
 
-  setMessage(
-    `${quantity} ${quantity === 1 ? "item" : "items"} added to cart.`,
-  );
-};
+    setMessage(
+      `${quantity} ${quantity === 1 ? "item" : "items"} added to cart.`,
+    );
+  };
 
   return (
     <main className="product-view">
@@ -71,10 +77,13 @@ function ProductView({ product, products, onBack, onProductSelect,  addToCart: h
           >
             ★★★★★ <span>4.8 (24 reviews)</span>
           </p>
-          <p className="product-view-description">
-            {product.description || defaultDescription}
-          </p>
-
+          <div className="product-view-description">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: product.description || defaultDescription,
+              }}
+            />
+          </div>
           <div className="product-option-group">
             <div className="product-option-heading">
               <span>Size</span>

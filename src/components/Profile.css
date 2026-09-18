@@ -42,6 +42,7 @@
   margin: 0 0 5px;
   font-size: 25px;
   font-weight: 600;
+  text-align: left;
 }
 
 .profile-header p {
@@ -233,6 +234,7 @@
   background: #1d1d1d;
   border-color: #1d1d1d;
   white-space: nowrap;
+  
 }
 
 .profile-address-section .btn-dark:hover {

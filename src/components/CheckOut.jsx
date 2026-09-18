@@ -1,6 +1,87 @@
+import { useEffect, useState } from "react";
 import "./CheckOut.css";
 
-function CheckOut({ cart = [], onBack }) {
+function CheckOut({ cart = [], customer, onBack }) {
+  /* =================================
+     ADDRESS STATES
+  ================================= */
+
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [addressLoading, setAddressLoading] = useState(true);
+  const [addressError, setAddressError] = useState("");
+
+  /* =================================
+     FETCH ADDRESSES
+  ================================= */
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!customer?.id) {
+        setAddresses([]);
+        setSelectedAddress(null);
+        setAddressLoading(false);
+        return;
+      }
+
+      try {
+        setAddressLoading(true);
+        setAddressError("");
+
+        const response = await fetch(
+          `http://localhost/react-backend/api/customer/address/list.php?customer_id=${customer.id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        console.log("Checkout Address Response:", data);
+
+        if (data.success) {
+          const addressList = data.addresses || [];
+
+          setAddresses(addressList);
+
+          /* Select default address automatically */
+          const defaultAddress = addressList.find(
+            (address) => Number(address.is_default) === 1
+          );
+
+          if (defaultAddress) {
+            setSelectedAddress(defaultAddress);
+          } else if (addressList.length > 0) {
+            setSelectedAddress(addressList[0]);
+          } else {
+            setSelectedAddress(null);
+          }
+        } else {
+          setAddresses([]);
+          setSelectedAddress(null);
+          setAddressError(
+            data.message || "Failed to load addresses."
+          );
+        }
+      } catch (error) {
+        console.error("Checkout address error:", error);
+
+        setAddresses([]);
+        setSelectedAddress(null);
+        setAddressError("Unable to connect to the server.");
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+
+    fetchAddresses();
+  }, [customer?.id]);
+
+  /* =================================
+     CART CALCULATION
+  ================================= */
+
   const subtotal = (cart || []).reduce(
     (total, item) =>
       total + Number(item.price) * Number(item.quantity),
@@ -41,6 +122,7 @@ function CheckOut({ cart = [], onBack }) {
               <input
                 type="text"
                 placeholder="Enter your full name"
+                defaultValue={customer?.name || ""}
               />
             </div>
 
@@ -51,6 +133,7 @@ function CheckOut({ cart = [], onBack }) {
               <input
                 type="email"
                 placeholder="Enter your email"
+                defaultValue={customer?.email || ""}
               />
             </div>
 
@@ -61,6 +144,7 @@ function CheckOut({ cart = [], onBack }) {
               <input
                 type="tel"
                 placeholder="Enter your mobile number"
+                defaultValue={customer?.phone || ""}
               />
             </div>
 
@@ -72,49 +156,122 @@ function CheckOut({ cart = [], onBack }) {
 
             <h2>02 Delivery Address</h2>
 
-            <div className="form-group">
-              <label>Address</label>
+            {/* LOADING */}
+            {addressLoading ? (
+              <div className="text-center py-3">
+                <div className="spinner-border"></div>
+                <p className="mt-2">
+                  Loading addresses...
+                </p>
+              </div>
+            ) : addressError ? (
 
-              <textarea
-                placeholder="House / Street / Area"
-              />
-            </div>
-
-
-            <div className="form-row">
-
-              <div className="form-group">
-                <label>City</label>
-
-                <input
-                  type="text"
-                  placeholder="City"
-                />
+              /* ERROR */
+              <div className="alert alert-danger">
+                {addressError}
               </div>
 
+            ) : addresses.length === 0 ? (
 
-              <div className="form-group">
-                <label>State</label>
+              /* NO ADDRESS */
+              <div className="address-empty">
 
-                <input
-                  type="text"
-                  placeholder="State"
-                />
+                <p>
+                  No saved address found.
+                </p>
+
+                <p className="text-muted">
+                  Please add an address before placing your order.
+                </p>
+
               </div>
 
-            </div>
+            ) : (
+
+              /* ADDRESS LIST */
+              <div className="checkout-address-list">
+
+                {addresses.map((address) => (
+
+                  <label
+                    className={`checkout-address-card ${
+                      selectedAddress?.address_id ===
+                      address.address_id
+                        ? "selected"
+                        : ""
+                    }`}
+                    key={address.address_id}
+                  >
+
+                    <div className="checkout-address-radio">
+
+                      <input
+                        type="radio"
+                        name="checkoutAddress"
+                        checked={
+                          selectedAddress?.address_id ===
+                          address.address_id
+                        }
+                        onChange={() =>
+                          setSelectedAddress(address)
+                        }
+                      />
+
+                    </div>
 
 
-            <div className="form-group">
+                    <div className="checkout-address-content">
 
-              <label>PIN Code</label>
+                      <div className="checkout-address-header">
 
-              <input
-                type="text"
-                placeholder="PIN Code"
-              />
+                        <strong>
+                          {address.full_name}
+                        </strong>
 
-            </div>
+                        {Number(address.is_default) === 1 && (
+                          <span className="checkout-default-badge">
+                            Default
+                          </span>
+                        )}
+
+                      </div>
+
+
+                      <p>
+                        {address.phone}
+                      </p>
+
+
+                      <p>
+                        {address.address_line1}
+                      </p>
+
+
+                      {address.address_line2 && (
+                        <p>
+                          {address.address_line2}
+                        </p>
+                      )}
+
+
+                      <p>
+                        {address.city}, {address.state}
+                      </p>
+
+
+                      <p>
+                        {address.pincode}, {address.country}
+                      </p>
+
+                    </div>
+
+                  </label>
+
+                ))}
+
+              </div>
+
+            )}
 
           </section>
 
@@ -287,7 +444,10 @@ function CheckOut({ cart = [], onBack }) {
 
             {/* PLACE ORDER */}
 
-            <button className="place-order-btn">
+            <button
+              className="place-order-btn"
+              disabled={!selectedAddress || cart.length === 0}
+            >
               Place Order →
             </button>
 

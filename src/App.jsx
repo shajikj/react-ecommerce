@@ -415,7 +415,7 @@ function App() {
           onProductSelect={openProduct}
         />
       ) : activePage === "checkout" ? (
-        <CheckOut cart={cart} onBack={() => openPage("cart")} />
+        <CheckOut cart={cart} customer={customer} onBack={() => openPage("cart")} />
       ) : activePage === "profile" ? (
         <Profile customer={customer} />
       ) : activePage === "contact" ? (
