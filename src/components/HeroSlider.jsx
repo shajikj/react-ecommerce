@@ -4,20 +4,14 @@ const slides = [
   {
     id: 1,
     image: "/slider/slider1.webp",
-    title: "FOOTBALL PERFORMANCE",
-    description: "Built for speed, grip, and match-day confidence.",
   },
   {
     id: 2,
     image: "/slider/slider2.webp",
-    title: "ENGINEERED FOR EVERY SURFACE",
-    description: "Control, durability, and comfort from training to tournament play.",
   },
   {
     id: 3,
     image: "/slider/slider3.webp",
-    title: "PLAY BETTER, FEEL BETTER",
-    description: "Premium footwear crafted for Indian pitches and everyday performance.",
   },
 ];
 
