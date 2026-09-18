@@ -12,6 +12,7 @@ function Header({
   customer,
   onLogout,
   onProductSelect,
+  onProfileSelect,
   cartCount,
   cart,
   cartOpen: propCartOpen,
@@ -280,26 +281,39 @@ function Header({
 
           {/* Login / Logout */}
           {customer ? (
-            <button
-              className="header-icon"
-              type="button"
-              onClick={onLogout}
-              title="Logout"
-            >
-              <i className="bi bi-box-arrow-right icon-28"></i>
-            </button>
-          ) : (
-            <button
-              className="header-icon"
-              type="button"
-              onClick={onLoginSelect}
-              title="Login"
-            >
-              <i className="bi bi-person icon-28"></i>
-            </button>
-          )}
+  <>
+    {/* Profile */}
+    <button
+      className="header-icon"
+      type="button"
+      onClick={onProfileSelect}
+      title="My Profile"
+    >
+      <i className="bi bi-person-circle icon-28"></i>
+    </button>
 
-          {/* Cart */}
+    {/* Logout */}
+    <button
+      className="header-icon"
+      type="button"
+      onClick={onLogout}
+      title="Logout"
+    >
+      <i className="bi bi-box-arrow-right icon-28"></i>
+    </button>
+  </>
+) : (
+  <button
+    className="header-icon"
+    type="button"
+    onClick={onLoginSelect}
+    title="Login"
+  >
+    <i className="bi bi-person icon-28"></i>
+  </button>
+)}
+
+  {/* Cart */}
           <button
             className="header-icon cart-icon"
             type="button"

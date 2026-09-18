@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Cart from "./pages/Cart";
 import CheckOut from "./components/CheckOut";
+import Profile from "./components/Profile";
 
 function App() {
   /* =========================
@@ -48,6 +49,7 @@ function App() {
         "register",
         "cart",
         "checkout",
+        "profile",
       ].includes(page)
         ? page
         : null,
@@ -279,7 +281,9 @@ function App() {
     window.history.pushState(
       {},
       "",
-      page ? `${window.location.pathname}?page=${page}` : window.location.pathname,
+      page
+        ? `${window.location.pathname}?page=${page}`
+        : window.location.pathname,
     );
 
     setSelectedProduct(null);
@@ -376,8 +380,10 @@ function App() {
         onRegisterSelect={() => openPage("register")}
         onContactSelect={() => openPage("contact")}
         onCheckout={() => openPage("checkout")}
+        onProfileSelect={() => openPage("profile")}
         onHomeSelect={() => openPage(null)}
         onProductSelect={openProduct}
+        
       />
       {/* =========================
           PRODUCT VIEW
@@ -410,6 +416,8 @@ function App() {
         />
       ) : activePage === "checkout" ? (
         <CheckOut cart={cart} onBack={() => openPage("cart")} />
+      ) : activePage === "profile" ? (
+        <Profile customer={customer} />
       ) : activePage === "contact" ? (
         <Contact />
       ) : activePage === "login" ? (
