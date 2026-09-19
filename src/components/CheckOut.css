@@ -492,3 +492,122 @@
   }
 
 }
+/* =========================================
+   DELIVERY ADDRESS
+========================================= */
+
+.checkout-address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 25px;
+}
+
+.checkout-address-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  width: 100%;
+  padding: 22px 24px;
+
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  background: #ffffff;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  box-sizing: border-box;
+}
+
+.checkout-address-card:hover {
+  border-color: #999;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+/* Selected address */
+.checkout-address-card.selected {
+  border: 2px solid #222;
+  background: #fafafa;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  text-align: justify;
+}
+
+/* Radio */
+.checkout-address-radio {
+  flex-shrink: 0;
+  padding-top: 3px;
+}
+
+.checkout-address-radio input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #222;
+}
+
+/* Address content */
+.checkout-address-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Name + default badge */
+.checkout-address-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.checkout-address-header strong {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Default badge */
+.checkout-default-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 9px;
+
+  border-radius: 5px;
+
+  background: #eeeeee;
+  color: #333;
+
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Address text */
+.checkout-address-content p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Phone */
+.checkout-address-content p:first-of-type {
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+/* Empty address */
+.address-empty {
+  padding: 30px;
+  text-align: center;
+  border: 1px dashed #ccc;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.address-empty p {
+  margin: 5px 0;
+}
