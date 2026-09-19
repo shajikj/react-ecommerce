@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./CheckOut.css";
 
-function CheckOut({ cart = [], customer, onBack }) {
+function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
   /* =================================
      ADDRESS STATES
   ================================= */
@@ -10,6 +10,7 @@ function CheckOut({ cart = [], customer, onBack }) {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addressLoading, setAddressLoading] = useState(true);
   const [addressError, setAddressError] = useState("");
+  const customerId = customer?.id ?? customer?.customer_id;
 
   /* =================================
      FETCH ADDRESSES
@@ -17,7 +18,7 @@ function CheckOut({ cart = [], customer, onBack }) {
 
   useEffect(() => {
     const fetchAddresses = async () => {
-      if (!customer?.id) {
+      if (!customerId) {
         setAddresses([]);
         setSelectedAddress(null);
         setAddressLoading(false);
@@ -29,7 +30,7 @@ function CheckOut({ cart = [], customer, onBack }) {
         setAddressError("");
 
         const response = await fetch(
-          `http://localhost/react-backend/api/customer/address/list.php?customer_id=${customer.id}`,
+          `http://localhost/react-backend/api/customer/address/list.php?customer_id=${customerId}`,
           {
             method: "GET",
             credentials: "include",
@@ -76,7 +77,7 @@ function CheckOut({ cart = [], customer, onBack }) {
     };
 
     fetchAddresses();
-  }, [customer?.id]);
+  }, [customerId]);
 
   /* =================================
      CART CALCULATION
@@ -92,7 +93,19 @@ function CheckOut({ cart = [], customer, onBack }) {
 
   const discount = 0;
 
-  const total = subtotal + shipping - discount;
+  const buyNowItem =
+    typeof window !== "undefined"
+      ? window.history.state?.buyNowItem || window.history.state?.usr?.buyNowItem
+      : null;
+  const orderItems = buyNowItem ? [buyNowItem] : cart || [];
+  const orderSubtotal = orderItems.reduce(
+    (total, item) =>
+      total + Number(item.price) * Number(item.quantity || 1),
+    0
+  );
+  const orderShipping = orderSubtotal > 0 ? shipping || 100 : 0;
+  const gst = orderSubtotal * 0.18;
+  const total = orderSubtotal + orderShipping + gst - discount;
 
   return (
     <div className="checkout-page">
@@ -337,7 +350,10 @@ function CheckOut({ cart = [], customer, onBack }) {
 
             {/* PRODUCTS */}
 
-            {cart.map((item) => (
+            {orderItems.length === 0 ? (
+              <p className="order-empty">Your order is empty.</p>
+            ) : (
+              orderItems.map((item) => (
 
               <div
                 className="checkout-product"
@@ -373,13 +389,14 @@ function CheckOut({ cart = [], customer, onBack }) {
                   ₹
                   {(
                     Number(item.price) *
-                    Number(item.quantity)
+                    Number(item.quantity || 1)
                   ).toFixed(2)}
                 </strong>
 
               </div>
 
-            ))}
+              ))
+            )}
 
 
             {/* SUBTOTAL */}
@@ -391,7 +408,7 @@ function CheckOut({ cart = [], customer, onBack }) {
               </span>
 
               <span>
-                ₹{subtotal.toFixed(2)}
+                ₹{orderSubtotal.toFixed(2)}
               </span>
 
             </div>
@@ -406,7 +423,7 @@ function CheckOut({ cart = [], customer, onBack }) {
               </span>
 
               <span>
-                ₹{shipping.toFixed(2)}
+                ₹{orderShipping.toFixed(2)}
               </span>
 
             </div>
@@ -422,6 +439,20 @@ function CheckOut({ cart = [], customer, onBack }) {
 
               <span>
                 -₹{discount.toFixed(2)}
+              </span>
+
+            </div>
+
+            {/* GST */}
+
+            <div className="summary-line">
+
+              <span>
+                GST (18%)
+              </span>
+
+              <span>
+                ₹{gst.toFixed(2)}
               </span>
 
             </div>
@@ -445,10 +476,22 @@ function CheckOut({ cart = [], customer, onBack }) {
             {/* PLACE ORDER */}
 
             <button
+              type="button"
               className="place-order-btn"
-              disabled={!selectedAddress || cart.length === 0}
+              disabled={!selectedAddress || orderItems.length === 0}
+              onClick={() =>
+                onPlaceOrder({
+                  items: orderItems,
+                  address: selectedAddress,
+                  subtotal: orderSubtotal,
+                  discount,
+                  shipping: orderShipping,
+                  gst,
+                  total,
+                })
+              }
             >
-              Place Order →
+              Place Order — ₹{total.toFixed(2)}
             </button>
 
 

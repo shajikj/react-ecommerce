@@ -287,6 +287,14 @@
   color: #222;
 }
 
+.order-empty {
+  margin: 0;
+  padding: 20px 0;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+}
+
 
 /* ========================================
    SUMMARY LINES
@@ -361,9 +369,19 @@
   transition: all 0.2s ease;
 }
 
+.place-order-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
 .place-order-btn:hover {
   background: #000;
   transform: translateY(-1px);
+}
+
+.place-order-btn:disabled:hover {
+  background: #aaa;
+  transform: none;
 }
 
 

@@ -1,0 +1,143 @@
+.order-summary-page {
+  min-height: calc(100vh - 74px);
+  padding: 100px 20px 70px;
+  background: #f6f6f4;
+}
+
+.order-summary-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 36px;
+  background: #fff;
+  border: 1px solid #e5e5e1;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.07);
+}
+
+.order-summary-card h1 {
+  margin: 0 0 10px;
+  color: #222;
+  font-size: 30px;
+}
+
+.order-summary-eyebrow {
+  margin: 0 0 8px;
+  color: #28704d;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.order-summary-message {
+  margin: 0 0 28px;
+  color: #777;
+}
+
+.order-summary-content {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+}
+
+.order-summary-content h2,
+.order-summary-address h2 {
+  margin: 0 0 15px;
+  color: #222;
+  font-size: 17px;
+}
+
+.order-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.order-summary-item img {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 7px;
+  background: #f3f3f3;
+}
+
+.order-summary-item div {
+  flex: 1;
+}
+
+.order-summary-item h3 {
+  margin: 0 0 4px;
+  color: #333;
+  font-size: 14px;
+}
+
+.order-summary-item p,
+.order-summary-address p {
+  margin: 3px 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.order-summary-item strong {
+  color: #222;
+  font-size: 14px;
+}
+
+.order-summary-address {
+  padding: 20px;
+  background: #fafaf8;
+  border-radius: 9px;
+}
+
+.order-summary-totals {
+  margin-top: 28px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.order-summary-totals p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.order-summary-total {
+  margin-top: 8px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #ddd;
+  color: #222 !important;
+  font-size: 18px !important;
+}
+
+.order-summary-continue,
+.order-summary-card > button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: #222;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .order-summary-page {
+    padding: 70px 15px 50px;
+  }
+
+  .order-summary-card {
+    padding: 24px 20px;
+  }
+
+  .order-summary-content {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}

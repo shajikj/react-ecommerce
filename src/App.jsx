@@ -1,28 +1,50 @@
 import { useEffect, useState } from "react";
+
 import "./App.css";
 
 import Header from "./components/Header";
+
 import HeroSlider from "./components/HeroSlider";
+
 import ProductSlider from "./components/ProductSlider";
+
 import Categories from "./components/Categories";
+
 import Features from "./components/Features";
+
 import CustomerReviews from "./components/CustomerReviews";
+
 import Subscribe from "./components/Subscribe";
+
 import Footer from "./components/Footer";
 
 // import { products } from "./components/ProductSlider";
 
 import ProductView from "./pages/ProductView";
+
 import About from "./pages/About";
+
 import Indoor from "./pages/Indoor";
+
 import Outdoor from "./pages/Outdoor";
+
 import AllProducts from "./pages/AllProducts";
+
 import Contact from "./pages/Contact";
+
 import Login from "./pages/Login";
+
 import Register from "./pages/Register";
+
 import Cart from "./pages/Cart";
+
 import CheckOut from "./components/CheckOut";
+
 import Profile from "./components/Profile";
+
+import OrderSummary from "./components/OrderSummary";
+
+import OrderSuccess from "./components/OrderSuccess";
 
 function App() {
   /* =========================
@@ -32,12 +54,11 @@ function App() {
   const getLocationState = () => {
     const params = new URLSearchParams(window.location.search);
 
-    // const productId = Number(params.get("product"));
-
+    const productId = params.get("product");
     const page = params.get("page");
 
     return {
-      product: null,
+      productId: productId ? Number(productId) : null,
 
       page: [
         "about",
@@ -50,6 +71,8 @@ function App() {
         "cart",
         "checkout",
         "profile",
+        "order-summary",
+        "order-success",
       ].includes(page)
         ? page
         : null,
@@ -60,11 +83,16 @@ function App() {
      PAGE STATES
   ========================= */
 
-  const [selectedProduct, setSelectedProduct] = useState(
-    () => getLocationState().product,
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [selectedProductId, setSelectedProductId] = useState(
+    () => getLocationState().productId,
   );
 
-  const [activePage, setActivePage] = useState(() => getLocationState().page);
+  const [activePage, setActivePage] = useState(
+    () => getLocationState().page,
+  );
+
   const [previousPage, setPreviousPage] = useState("all-products");
 
   /* =========================
@@ -76,22 +104,44 @@ function App() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   const [apiProducts, setApiProducts] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [cartOpen, setCartOpen] = useState(false);
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // cart section
+  const [cart, setCart] = useState([]);
+
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const [completedOrder, setCompletedOrder] = useState(() => {
+    try {
+      const savedOrder = sessionStorage.getItem("completedOrder");
+
+      return savedOrder ? JSON.parse(savedOrder) : null;
+    } catch (error) {
+      console.error("Saved order could not be loaded:", error);
+
+      return null;
+    }
+  });
+
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  );
+
+  /* =========================
+     CART SECTION
+  ========================= */
 
   const addToCart = (product) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find(
         (item) =>
-          item.id === product.id && item.selectedSize === product.selectedSize,
+          item.id === product.id &&
+          item.selectedSize === product.selectedSize,
       );
 
       if (existingProduct) {
         return prevCart.map((item) =>
-          item.id === product.id && item.selectedSize === product.selectedSize
+          item.id === product.id &&
+          item.selectedSize === product.selectedSize
             ? {
                 ...item,
                 quantity: item.quantity + product.quantity,
@@ -108,10 +158,17 @@ function App() {
     setCart((prevCart) =>
       prevCart
         .map((item) => {
-          if (item.id === id && item.selectedSize === selectedSize) {
+          if (
+            item.id === id &&
+            item.selectedSize === selectedSize
+          ) {
             const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
+
+            return newQty > 0
+              ? { ...item, quantity: newQty }
+              : null;
           }
+
           return item;
         })
         .filter(Boolean),
@@ -121,7 +178,11 @@ function App() {
   const removeFromCart = (id, selectedSize) => {
     setCart((prevCart) =>
       prevCart.filter(
-        (item) => !(item.id === id && item.selectedSize === selectedSize),
+        (item) =>
+          !(
+            item.id === id &&
+            item.selectedSize === selectedSize
+          ),
       ),
     );
   };
@@ -162,6 +223,10 @@ function App() {
     checkSession();
   }, []);
 
+  /* =========================
+     FETCH PRODUCTS
+  ========================= */
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -176,17 +241,27 @@ function App() {
         if (data.status) {
           const formattedProducts = data.data.map((product) => ({
             id: Number(product.product_id),
+
             name: product.product_name,
+
             image: product.product_image
               ? `http://localhost/react-backend/api/assets/images/products/${product.product_image}`
               : "",
+
             price: product.Price,
+
             colors: product.product_color,
+
             shoeSize: product.shoe_size,
+
             description: product.description,
+
             details: product.product_details,
+
             categoryId: Number(product.category_id),
+
             categoryName: product.category_name,
+
             status: Number(product.status),
           }));
 
@@ -201,6 +276,25 @@ function App() {
   }, []);
 
   /* =========================
+     RESTORE PRODUCT FROM URL
+  ========================= */
+
+  useEffect(() => {
+    if (!selectedProductId || apiProducts.length === 0) {
+      return;
+    }
+
+    const foundProduct = apiProducts.find(
+      (item) => item.id === selectedProductId,
+    );
+
+    if (foundProduct) {
+      setSelectedProduct(foundProduct);
+      setActivePage(null);
+    }
+  }, [selectedProductId, apiProducts]);
+
+  /* =========================
      BROWSER BACK / FORWARD
   ========================= */
 
@@ -208,7 +302,9 @@ function App() {
     const handlePopState = () => {
       const locationState = getLocationState();
 
-      setSelectedProduct(locationState.product);
+      setSelectedProductId(locationState.productId);
+
+      setSelectedProduct(null);
 
       setActivePage(locationState.page);
     };
@@ -237,6 +333,8 @@ function App() {
       `${window.location.pathname}?product=${product.id}`,
     );
 
+    setSelectedProductId(product.id);
+
     setSelectedProduct(product);
 
     setActivePage(null);
@@ -253,7 +351,11 @@ function App() {
 
   const closeProduct = () => {
     if (previousPage === "home") {
-      window.history.pushState({}, "", window.location.pathname);
+      window.history.pushState(
+        {},
+        "",
+        window.location.pathname,
+      );
     } else {
       window.history.pushState(
         {},
@@ -263,7 +365,13 @@ function App() {
     }
 
     setSelectedProduct(null);
-    setActivePage(previousPage === "home" ? null : previousPage);
+
+    setSelectedProductId(null);
+
+    setActivePage(
+      previousPage === "home" ? null : previousPage,
+    );
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -278,6 +386,7 @@ function App() {
     if (page) {
       setPreviousPage(page);
     }
+
     window.history.pushState(
       {},
       "",
@@ -288,6 +397,8 @@ function App() {
 
     setSelectedProduct(null);
 
+    setSelectedProductId(null);
+
     setActivePage(page);
 
     window.scrollTo({
@@ -297,13 +408,58 @@ function App() {
   };
 
   /* =========================
+     PLACE ORDER
+  ========================= */
+
+  const handlePlaceOrder = (order) => {
+    const deliveryStart = new Date();
+
+    deliveryStart.setDate(
+      deliveryStart.getDate() + 6,
+    );
+
+    const deliveryEnd = new Date(deliveryStart);
+
+    deliveryEnd.setDate(
+      deliveryEnd.getDate() + 3,
+    );
+
+    const formatDeliveryDate = (date) =>
+      date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+
+    const completedOrderData = {
+      ...order,
+
+      orderId: `ORD-${Date.now()
+        .toString()
+        .slice(-5)}`,
+
+      estimatedDelivery: `${formatDeliveryDate(
+        deliveryStart,
+      )} – ${formatDeliveryDate(deliveryEnd)}`,
+    };
+
+    setCompletedOrder(completedOrderData);
+
+    sessionStorage.setItem(
+      "completedOrder",
+      JSON.stringify(completedOrderData),
+    );
+
+    openPage("order-success");
+  };
+
+  /* =========================
      LOGIN SUCCESS
   ========================= */
 
   const handleLoginSuccess = (customerData) => {
     setCustomer(customerData);
 
-    // Go to home page
     openPage(null);
   };
 
@@ -383,11 +539,12 @@ function App() {
         onProfileSelect={() => openPage("profile")}
         onHomeSelect={() => openPage(null)}
         onProductSelect={openProduct}
-        
       />
+
       {/* =========================
           PRODUCT VIEW
       ========================= */}
+
       {selectedProduct ? (
         <ProductView
           key={selectedProduct.id}
@@ -396,15 +553,25 @@ function App() {
           onBack={closeProduct}
           onProductSelect={openProduct}
           addToCart={addToCart}
+          onCheckout={() => openPage("checkout")}
         />
       ) : activePage === "about" ? (
         <About />
       ) : activePage === "indoor" ? (
-        <Indoor products={apiProducts} onProductSelect={openProduct} />
+        <Indoor
+          products={apiProducts}
+          onProductSelect={openProduct}
+        />
       ) : activePage === "outdoor" ? (
-        <Outdoor products={apiProducts} onProductSelect={openProduct} />
+        <Outdoor
+          products={apiProducts}
+          onProductSelect={openProduct}
+        />
       ) : activePage === "all-products" ? (
-        <AllProducts products={apiProducts} onProductSelect={openProduct} />
+        <AllProducts
+          products={apiProducts}
+          onProductSelect={openProduct}
+        />
       ) : activePage === "cart" ? (
         <Cart
           cart={cart}
@@ -415,9 +582,24 @@ function App() {
           onProductSelect={openProduct}
         />
       ) : activePage === "checkout" ? (
-        <CheckOut cart={cart} customer={customer} onBack={() => openPage("cart")} />
+        <CheckOut
+          cart={cart}
+          customer={customer}
+          onBack={() => openPage("cart")}
+          onPlaceOrder={handlePlaceOrder}
+        />
       ) : activePage === "profile" ? (
         <Profile customer={customer} />
+      ) : activePage === "order-summary" ? (
+        <OrderSummary
+          order={completedOrder}
+          onContinueShopping={() => openPage(null)}
+        />
+      ) : activePage === "order-success" ? (
+        <OrderSuccess
+          order={completedOrder}
+          onContinueShopping={() => openPage(null)}
+        />
       ) : activePage === "contact" ? (
         <Contact />
       ) : activePage === "login" ? (
@@ -431,7 +613,10 @@ function App() {
         <>
           <HeroSlider />
 
-          <ProductSlider products={apiProducts} onProductSelect={openProduct} />
+          <ProductSlider
+            products={apiProducts}
+            onProductSelect={openProduct}
+          />
 
           <Categories />
 

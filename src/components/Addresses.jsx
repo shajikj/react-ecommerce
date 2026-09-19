@@ -24,7 +24,7 @@ const Addresses = ({ customer }) => {
   });
 
   // Get customer ID from logged-in customer
-  const customerId = customer?.id;
+  const customerId = customer?.id ?? customer?.customer_id;
 
   // ==========================================
   // FETCH ADDRESSES

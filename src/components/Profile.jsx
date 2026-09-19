@@ -11,7 +11,7 @@ const Profile = ({ customer: sessionCustomer }) => {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [showAddresses, setShowAddresses] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(true);
 
   // =====================================================
   // INPUT CHANGE
