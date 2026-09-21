@@ -89,9 +89,7 @@ function App() {
     () => getLocationState().productId,
   );
 
-  const [activePage, setActivePage] = useState(
-    () => getLocationState().page,
-  );
+  const [activePage, setActivePage] = useState(() => getLocationState().page);
 
   const [previousPage, setPreviousPage] = useState("all-products");
 
@@ -121,10 +119,7 @@ function App() {
     }
   });
 
-  const cartCount = cart.reduce(
-    (total, item) => total + item.quantity,
-    0,
-  );
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   /* =========================
      CART SECTION
@@ -134,14 +129,12 @@ function App() {
     setCart((prevCart) => {
       const existingProduct = prevCart.find(
         (item) =>
-          item.id === product.id &&
-          item.selectedSize === product.selectedSize,
+          item.id === product.id && item.selectedSize === product.selectedSize,
       );
 
       if (existingProduct) {
         return prevCart.map((item) =>
-          item.id === product.id &&
-          item.selectedSize === product.selectedSize
+          item.id === product.id && item.selectedSize === product.selectedSize
             ? {
                 ...item,
                 quantity: item.quantity + product.quantity,
@@ -158,15 +151,10 @@ function App() {
     setCart((prevCart) =>
       prevCart
         .map((item) => {
-          if (
-            item.id === id &&
-            item.selectedSize === selectedSize
-          ) {
+          if (item.id === id && item.selectedSize === selectedSize) {
             const newQty = item.quantity + delta;
 
-            return newQty > 0
-              ? { ...item, quantity: newQty }
-              : null;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
 
           return item;
@@ -178,11 +166,7 @@ function App() {
   const removeFromCart = (id, selectedSize) => {
     setCart((prevCart) =>
       prevCart.filter(
-        (item) =>
-          !(
-            item.id === id &&
-            item.selectedSize === selectedSize
-          ),
+        (item) => !(item.id === id && item.selectedSize === selectedSize),
       ),
     );
   };
@@ -351,11 +335,7 @@ function App() {
 
   const closeProduct = () => {
     if (previousPage === "home") {
-      window.history.pushState(
-        {},
-        "",
-        window.location.pathname,
-      );
+      window.history.pushState({}, "", window.location.pathname);
     } else {
       window.history.pushState(
         {},
@@ -368,9 +348,7 @@ function App() {
 
     setSelectedProductId(null);
 
-    setActivePage(
-      previousPage === "home" ? null : previousPage,
-    );
+    setActivePage(previousPage === "home" ? null : previousPage);
 
     window.scrollTo({
       top: 0,
@@ -410,18 +388,95 @@ function App() {
   /* =========================
      PLACE ORDER
   ========================= */
+const handlePlaceOrder = async (order) => {
+  console.log("ORDER RECEIVED IN APP:", order);
 
-  const handlePlaceOrder = (order) => {
+  // ==========================================
+  // CHECK CUSTOMER
+  // ==========================================
+
+  if (!customer?.id && !customer?.customer_id) {
+    alert("Customer information not found.");
+    return;
+  }
+
+  const customerId = customer.id ?? customer.customer_id;
+
+  // ==========================================
+  // PREPARE ORDER DATA
+  // ==========================================
+
+  const orderData = {
+    customer_id: Number(customerId),
+
+    address_id: Number(order.address?.address_id),
+
+    payment_method: order.paymentMethod,
+
+    items: order.items.map((item) => ({
+      productId: Number(item.productId ?? item.id),
+      name: item.name,
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+      selectedSize: item.selectedSize ?? null,
+    })),
+
+    subtotal: Number(order.subtotal || 0),
+    discount: Number(order.discount || 0),
+    shipping: Number(order.shipping || 0),
+    gst: Number(order.gst || 0),
+    total: Number(order.total || 0),
+  };
+
+  console.log("ORDER DATA SENT TO API:", orderData);
+
+  // ==========================================
+  // SEND ORDER TO PHP API
+  // ==========================================
+
+  try {
+    const response = await fetch(
+      "http://localhost/react-backend/api/order/create.php",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        credentials: "include",
+
+        body: JSON.stringify(orderData),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("CREATE ORDER API RESPONSE:", data);
+
+    // ==========================================
+    // CHECK API RESPONSE
+    // ==========================================
+
+    if (!data.status) {
+      alert(data.message || "Failed to create order.");
+      return;
+    }
+
+    // ==========================================
+    // CREATE DELIVERY DATE
+    // ==========================================
+
     const deliveryStart = new Date();
 
     deliveryStart.setDate(
-      deliveryStart.getDate() + 6,
+      deliveryStart.getDate() + 6
     );
 
     const deliveryEnd = new Date(deliveryStart);
 
     deliveryEnd.setDate(
-      deliveryEnd.getDate() + 3,
+      deliveryEnd.getDate() + 3
     );
 
     const formatDeliveryDate = (date) =>
@@ -431,28 +486,44 @@ function App() {
         year: "numeric",
       });
 
+    // ==========================================
+    // CREATE COMPLETED ORDER DATA
+    // ==========================================
+
     const completedOrderData = {
       ...order,
 
-      orderId: `ORD-${Date.now()
-        .toString()
-        .slice(-5)}`,
+      orderId: data.data.order_id,
 
       estimatedDelivery: `${formatDeliveryDate(
-        deliveryStart,
-      )} – ${formatDeliveryDate(deliveryEnd)}`,
+        deliveryStart
+      )} – ${formatDeliveryDate(
+        deliveryEnd
+      )}`,
     };
+
+    // ==========================================
+    // SAVE ORDER FOR ORDER SUCCESS PAGE
+    // ==========================================
 
     setCompletedOrder(completedOrderData);
 
     sessionStorage.setItem(
       "completedOrder",
-      JSON.stringify(completedOrderData),
+      JSON.stringify(completedOrderData)
     );
 
-    openPage("order-success");
-  };
+    // ==========================================
+    // GO TO ORDER SUCCESS
+    // ==========================================
 
+    openPage("order-success");
+
+  } catch (error) {
+    console.error("CREATE ORDER ERROR:", error);
+    alert("Unable to place the order. Please try again.");
+  }
+};
   /* =========================
      LOGIN SUCCESS
   ========================= */
@@ -558,20 +629,11 @@ function App() {
       ) : activePage === "about" ? (
         <About />
       ) : activePage === "indoor" ? (
-        <Indoor
-          products={apiProducts}
-          onProductSelect={openProduct}
-        />
+        <Indoor products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "outdoor" ? (
-        <Outdoor
-          products={apiProducts}
-          onProductSelect={openProduct}
-        />
+        <Outdoor products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "all-products" ? (
-        <AllProducts
-          products={apiProducts}
-          onProductSelect={openProduct}
-        />
+        <AllProducts products={apiProducts} onProductSelect={openProduct} />
       ) : activePage === "cart" ? (
         <Cart
           cart={cart}
@@ -613,10 +675,7 @@ function App() {
         <>
           <HeroSlider />
 
-          <ProductSlider
-            products={apiProducts}
-            onProductSelect={openProduct}
-          />
+          <ProductSlider products={apiProducts} onProductSelect={openProduct} />
 
           <Categories />
 

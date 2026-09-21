@@ -11,6 +11,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
   const [addressLoading, setAddressLoading] = useState(true);
   const [addressError, setAddressError] = useState("");
   const customerId = customer?.id ?? customer?.customer_id;
+  const [paymentMethod, setPaymentMethod] = useState("upi");
   console.log("Customer received in Checkout:", customer);
   console.log("Customer ID:", customerId);
 
@@ -203,9 +204,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
                         <strong>{address.full_name}</strong>
 
                         {Number(address.is_default) === 1 && (
-                          <span className="checkout-default-badge">
-                            
-                          </span>
+                          <span className="checkout-default-badge"></span>
                         )}
                       </div>
 
@@ -234,19 +233,37 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
             <h2>03 Payment Method</h2>
 
             <label className="payment-option">
-              <input type="radio" name="payment" value="upi" />
+              <input
+                type="radio"
+                name="payment"
+                value="upi"
+                checked={paymentMethod === "upi"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
 
               <span>UPI</span>
             </label>
 
             <label className="payment-option">
-              <input type="radio" name="payment" value="card" />
+              <input
+                type="radio"
+                name="payment"
+                value="card"
+                checked={paymentMethod === "card"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
 
               <span>Credit / Debit Card</span>
             </label>
 
             <label className="payment-option">
-              <input type="radio" name="payment" value="cod" />
+              <input
+                type="radio"
+                name="payment"
+                value="cod"
+                checked={paymentMethod === "cod"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
 
               <span>Cash on Delivery</span>
             </label>
@@ -340,6 +357,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
                 onPlaceOrder({
                   items: orderItems,
                   address: selectedAddress,
+                  paymentMethod: paymentMethod,
                   subtotal: orderSubtotal,
                   discount,
                   shipping: orderShipping,
