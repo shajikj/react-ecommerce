@@ -1,6 +1,10 @@
 import "./OrderSuccess.css";
 
-function OrderSuccess({ order, onContinueShopping }) {
+function OrderSuccess({
+  order,
+  onContinueShopping,
+  onViewMyOrders
+}) {
   if (!order) {
     return (
       <main className="order-success-page">
@@ -78,9 +82,12 @@ function OrderSuccess({ order, onContinueShopping }) {
         </div>
 
         <div className="order-success-actions">
-          <button type="button" className="order-success-orders" disabled>
-            View My Orders
-          </button>
+         <button
+  onClick={onViewMyOrders}
+  className="view-orders-btn"
+>
+  View My Orders
+</button>
           <button
             type="button"
             className="order-success-continue"

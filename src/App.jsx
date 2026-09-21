@@ -45,6 +45,8 @@ import Profile from "./components/Profile";
 import OrderSummary from "./components/OrderSummary";
 
 import OrderSuccess from "./components/OrderSuccess";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
 
 function App() {
   /* =========================
@@ -73,6 +75,8 @@ function App() {
         "profile",
         "order-summary",
         "order-success",
+        "my-orders",
+        "order-details",
       ].includes(page)
         ? page
         : null,
@@ -98,6 +102,7 @@ function App() {
   ========================= */
 
   const [customer, setCustomer] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const [checkingSession, setCheckingSession] = useState(true);
 
@@ -388,142 +393,135 @@ function App() {
   /* =========================
      PLACE ORDER
   ========================= */
-const handlePlaceOrder = async (order) => {
-  console.log("ORDER RECEIVED IN APP:", order);
-
-  // ==========================================
-  // CHECK CUSTOMER
-  // ==========================================
-
-  if (!customer?.id && !customer?.customer_id) {
-    alert("Customer information not found.");
-    return;
-  }
-
-  const customerId = customer.id ?? customer.customer_id;
-
-  // ==========================================
-  // PREPARE ORDER DATA
-  // ==========================================
-
-  const orderData = {
-    customer_id: Number(customerId),
-
-    address_id: Number(order.address?.address_id),
-
-    payment_method: order.paymentMethod,
-
-    items: order.items.map((item) => ({
-      productId: Number(item.productId ?? item.id),
-      name: item.name,
-      quantity: Number(item.quantity || 1),
-      price: Number(item.price || 0),
-      selectedSize: item.selectedSize ?? null,
-    })),
-
-    subtotal: Number(order.subtotal || 0),
-    discount: Number(order.discount || 0),
-    shipping: Number(order.shipping || 0),
-    gst: Number(order.gst || 0),
-    total: Number(order.total || 0),
-  };
-
-  console.log("ORDER DATA SENT TO API:", orderData);
-
-  // ==========================================
-  // SEND ORDER TO PHP API
-  // ==========================================
-
-  try {
-    const response = await fetch(
-      "http://localhost/react-backend/api/order/create.php",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        credentials: "include",
-
-        body: JSON.stringify(orderData),
-      }
-    );
-
-    const data = await response.json();
-
-    console.log("CREATE ORDER API RESPONSE:", data);
+  const handlePlaceOrder = async (order) => {
+    console.log("ORDER RECEIVED IN APP:", order);
 
     // ==========================================
-    // CHECK API RESPONSE
+    // CHECK CUSTOMER
     // ==========================================
 
-    if (!data.status) {
-      alert(data.message || "Failed to create order.");
+    if (!customer?.id && !customer?.customer_id) {
+      alert("Customer information not found.");
       return;
     }
 
-    // ==========================================
-    // CREATE DELIVERY DATE
-    // ==========================================
-
-    const deliveryStart = new Date();
-
-    deliveryStart.setDate(
-      deliveryStart.getDate() + 6
-    );
-
-    const deliveryEnd = new Date(deliveryStart);
-
-    deliveryEnd.setDate(
-      deliveryEnd.getDate() + 3
-    );
-
-    const formatDeliveryDate = (date) =>
-      date.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
+    const customerId = customer.id ?? customer.customer_id;
 
     // ==========================================
-    // CREATE COMPLETED ORDER DATA
+    // PREPARE ORDER DATA
     // ==========================================
 
-    const completedOrderData = {
-      ...order,
+    const orderData = {
+      customer_id: Number(customerId),
 
-      orderId: data.data.order_id,
+      address_id: Number(order.address?.address_id),
 
-      estimatedDelivery: `${formatDeliveryDate(
-        deliveryStart
-      )} – ${formatDeliveryDate(
-        deliveryEnd
-      )}`,
+      payment_method: order.paymentMethod,
+
+      items: order.items.map((item) => ({
+        productId: Number(item.productId ?? item.id),
+        name: item.name,
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0),
+        selectedSize: item.selectedSize ?? null,
+      })),
+
+      subtotal: Number(order.subtotal || 0),
+      discount: Number(order.discount || 0),
+      shipping: Number(order.shipping || 0),
+      gst: Number(order.gst || 0),
+      total: Number(order.total || 0),
     };
 
-    // ==========================================
-    // SAVE ORDER FOR ORDER SUCCESS PAGE
-    // ==========================================
-
-    setCompletedOrder(completedOrderData);
-
-    sessionStorage.setItem(
-      "completedOrder",
-      JSON.stringify(completedOrderData)
-    );
+    console.log("ORDER DATA SENT TO API:", orderData);
 
     // ==========================================
-    // GO TO ORDER SUCCESS
+    // SEND ORDER TO PHP API
     // ==========================================
 
-    openPage("order-success");
+    try {
+      const response = await fetch(
+        "http://localhost/react-backend/api/order/create.php",
+        {
+          method: "POST",
 
-  } catch (error) {
-    console.error("CREATE ORDER ERROR:", error);
-    alert("Unable to place the order. Please try again.");
-  }
-};
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          credentials: "include",
+
+          body: JSON.stringify(orderData),
+        },
+      );
+
+      const data = await response.json();
+
+      console.log("CREATE ORDER API RESPONSE:", data);
+
+      // ==========================================
+      // CHECK API RESPONSE
+      // ==========================================
+
+      if (!data.status) {
+        alert(data.message || "Failed to create order.");
+        return;
+      }
+
+      // ==========================================
+      // CREATE DELIVERY DATE
+      // ==========================================
+
+      const deliveryStart = new Date();
+
+      deliveryStart.setDate(deliveryStart.getDate() + 6);
+
+      const deliveryEnd = new Date(deliveryStart);
+
+      deliveryEnd.setDate(deliveryEnd.getDate() + 3);
+
+      const formatDeliveryDate = (date) =>
+        date.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
+      // ==========================================
+      // CREATE COMPLETED ORDER DATA
+      // ==========================================
+
+      const completedOrderData = {
+        ...order,
+
+        orderId: data.data.order_id,
+
+        estimatedDelivery: `${formatDeliveryDate(
+          deliveryStart,
+        )} – ${formatDeliveryDate(deliveryEnd)}`,
+      };
+
+      // ==========================================
+      // SAVE ORDER FOR ORDER SUCCESS PAGE
+      // ==========================================
+
+      setCompletedOrder(completedOrderData);
+
+      sessionStorage.setItem(
+        "completedOrder",
+        JSON.stringify(completedOrderData),
+      );
+
+      // ==========================================
+      // GO TO ORDER SUCCESS
+      // ==========================================
+
+      openPage("order-success");
+    } catch (error) {
+      console.error("CREATE ORDER ERROR:", error);
+      alert("Unable to place the order. Please try again.");
+    }
+  };
   /* =========================
      LOGIN SUCCESS
   ========================= */
@@ -652,6 +650,14 @@ const handlePlaceOrder = async (order) => {
         />
       ) : activePage === "profile" ? (
         <Profile customer={customer} />
+      ) : activePage === "my-orders" ? (
+  <MyOrders
+    customer={customer}
+    onViewOrder={(orderId) => {
+      setSelectedOrderId(orderId);
+      openPage("order-details");
+    }}
+  />
       ) : activePage === "order-summary" ? (
         <OrderSummary
           order={completedOrder}
@@ -661,6 +667,7 @@ const handlePlaceOrder = async (order) => {
         <OrderSuccess
           order={completedOrder}
           onContinueShopping={() => openPage(null)}
+          onViewMyOrders={() => openPage("my-orders")}
         />
       ) : activePage === "contact" ? (
         <Contact />

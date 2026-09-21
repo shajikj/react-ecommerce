@@ -1,0 +1,200 @@
+/* ========================================
+   MY ORDERS PAGE
+======================================== */
+
+.my-orders {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(100vh - 74px);
+  padding: 116px 5% 80px;
+  background: #f6f6f4;
+  color: #222;
+  text-align: left;
+}
+
+.my-orders > h2 {
+  max-width: 920px;
+  margin: 0 auto 28px;
+  color: #222;
+  font-size: clamp(28px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.7px;
+}
+
+/* Loading, error and empty states use the existing simple markup. */
+.my-orders > h2 + p:last-child {
+  box-sizing: border-box;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 30px;
+  color: #666;
+  background: #fff;
+  border: 1px solid #e5e5e1;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.order-card {
+  box-sizing: border-box;
+  max-width: 920px;
+  margin: 0 auto 18px;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e5e5e1;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.order-card:hover {
+  border-color: #cfcfca;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+}
+
+.order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 26px;
+  background: #fafaf8;
+  border-bottom: 1px solid #ecece8;
+}
+
+.order-header strong {
+  display: block;
+  color: #1d1d1d;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-header p {
+  margin: 5px 0 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.order-status {
+  flex-shrink: 0;
+  padding: 6px 11px;
+  color: #28704d;
+  background: #e8f4ed;
+  border: 1px solid #cce6d7;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.order-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 24px 26px;
+}
+
+.order-info > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.order-info span {
+  color: #777;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.order-info strong {
+  overflow: hidden;
+  color: #222;
+  font-size: 16px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.view-order-btn {
+  min-height: 42px;
+  margin: 0 26px 24px;
+  padding: 0 18px;
+  color: #fff;
+  background: #1d1d1d;
+  border: 1px solid #1d1d1d;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.view-order-btn:hover {
+  background: #000;
+  border-color: #000;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
+}
+
+.view-order-btn:focus-visible {
+  outline: 3px solid rgba(34, 34, 34, 0.2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 680px) {
+  .my-orders {
+    padding: 96px 16px 50px;
+  }
+
+  .my-orders > h2 {
+    margin-bottom: 22px;
+    font-size: 27px;
+  }
+
+  .my-orders > h2 + p:last-child {
+    padding: 24px 20px;
+  }
+
+  .order-header {
+    align-items: flex-start;
+    padding: 19px 18px;
+  }
+
+  .order-info {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 19px 16px;
+    padding: 20px 18px;
+  }
+
+  .order-info > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .view-order-btn {
+    width: calc(100% - 36px);
+    margin: 0 18px 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .order-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .order-info {
+    grid-template-columns: 1fr;
+  }
+
+  .order-info > div:first-child {
+    grid-column: auto;
+  }
+}
