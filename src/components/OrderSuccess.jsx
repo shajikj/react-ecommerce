@@ -83,6 +83,7 @@ function OrderSuccess({
 
         <div className="order-success-actions">
          <button
+  type="button"
   onClick={onViewMyOrders}
   className="view-orders-btn"
 >

@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./Profile.css";
 import Addresses from "./Addresses";
 
-const Profile = ({ customer: sessionCustomer }) => {
+const Profile = ({ customer: sessionCustomer, onViewOrders }) => {
   const [customer, setCustomer] = useState({
     name: sessionCustomer?.name || "",
     email: sessionCustomer?.email || "",
@@ -176,6 +176,17 @@ const Profile = ({ customer: sessionCustomer }) => {
                 <button type="submit" className="profile-submit">
                   <i className="ri-save-line me-1"></i>
                   Update Profile
+                </button>
+              </div>
+
+              <div className="profile-orders-actions">
+                <button
+                  type="button"
+                  className="profile-orders-button"
+                  onClick={onViewOrders}
+                >
+                  <i className="bi bi-bag me-2"></i>
+                  View Orders
                 </button>
               </div>
 

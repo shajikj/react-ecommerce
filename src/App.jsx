@@ -58,9 +58,11 @@ function App() {
 
     const productId = params.get("product");
     const page = params.get("page");
+    const orderId = params.get("order_id");
 
     return {
       productId: productId ? Number(productId) : null,
+      orderId: orderId || null,
 
       page: [
         "about",
@@ -102,7 +104,9 @@ function App() {
   ========================= */
 
   const [customer, setCustomer] = useState(null);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(
+    () => getLocationState().orderId,
+  );
 
   const [checkingSession, setCheckingSession] = useState(true);
 
@@ -295,6 +299,8 @@ function App() {
 
       setSelectedProduct(null);
 
+      setSelectedOrderId(locationState.orderId);
+
       setActivePage(locationState.page);
     };
 
@@ -383,6 +389,36 @@ function App() {
     setSelectedProductId(null);
 
     setActivePage(page);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const openOrderDetails = (orderId) => {
+    const normalizedOrderId = String(orderId ?? "").trim();
+
+    if (!normalizedOrderId) {
+      console.error("Cannot open order details without an order ID.");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      page: "order-details",
+      order_id: normalizedOrderId,
+    });
+
+    window.history.pushState(
+      {},
+      "",
+      `${window.location.pathname}?${params.toString()}`,
+    );
+
+    setSelectedProduct(null);
+    setSelectedProductId(null);
+    setSelectedOrderId(normalizedOrderId);
+    setActivePage("order-details");
 
     window.scrollTo({
       top: 0,
@@ -649,15 +685,20 @@ function App() {
           onPlaceOrder={handlePlaceOrder}
         />
       ) : activePage === "profile" ? (
-        <Profile customer={customer} />
+        <Profile
+          customer={customer}
+          onViewOrders={() => openPage("my-orders")}
+        />
       ) : activePage === "my-orders" ? (
-  <MyOrders
-    customer={customer}
-    onViewOrder={(orderId) => {
-      setSelectedOrderId(orderId);
-      openPage("order-details");
-    }}
-  />
+        <MyOrders
+          customer={customer}
+          onViewOrder={openOrderDetails}
+        />
+      ) : activePage === "order-details" ? (
+        <OrderDetails
+          orderId={selectedOrderId}
+          onBackToOrders={() => openPage("my-orders")}
+        />
       ) : activePage === "order-summary" ? (
         <OrderSummary
           order={completedOrder}
