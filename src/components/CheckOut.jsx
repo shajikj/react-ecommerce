@@ -15,7 +15,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
   console.log("Customer received in Checkout:", customer);
   console.log("Customer ID:", customerId);
 
-  /* =================================
+  /* =================================  
      FETCH ADDRESSES
   ================================= */
 
