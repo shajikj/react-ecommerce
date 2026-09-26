@@ -9,10 +9,6 @@ body {
   width: 100%;
 }
 
-body {
-  min-width: 320px;
-}
-
 #root {
   width: 100%;
 }
@@ -93,7 +89,7 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 1875 / 720;
-  margin-top: 74px;
+  margin-top: 103px;
   overflow: hidden;
 }
 
@@ -217,15 +213,15 @@ body {
     width: 100%;
     height: auto;
     aspect-ratio: auto;
-    margin-top: 74px;
+    margin-top: 84px;
     overflow: hidden;
     background: #fff;
   }
 
   .hero-image {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: auto;
+    padding-top: 0;
     object-position: center;
     display: block;
   }
@@ -243,7 +239,6 @@ body {
 
   .hero-image {
     width: 100%;
-    padding-top: 14px;
     height: auto;
   }
 }
@@ -1657,6 +1652,91 @@ body {
 .footer-bottom p {
   margin: 0;
   color: #888;
+}
+
+@media (max-width: 1100px) {
+  .products-section {
+    padding-right: 32px;
+    padding-left: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-section {
+    padding: 52px 20px;
+  }
+
+  .products-header {
+    gap: 20px;
+    margin-bottom: 26px;
+  }
+
+  .products-header h2 {
+    font-size: clamp(23px, 5vw, 30px);
+  }
+
+  .product-slider-header {
+    gap: 16px;
+    padding: 0 20px 24px;
+  }
+
+  .product-slider-header h2 {
+    font-size: clamp(22px, 4vw, 28px);
+  }
+
+  .product-header-arrows {
+    flex-shrink: 0;
+  }
+
+  .product-header-arrows button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .review-slider {
+    width: calc(100% - 40px);
+    height: 410px;
+  }
+
+  .review-card-content {
+    padding: 28px;
+  }
+
+  .review-card-content h3 {
+    font-size: clamp(21px, 3.4vw, 27px);
+  }
+
+  .review-message {
+    font-size: 16px;
+  }
+
+  .footer-container {
+    gap: 28px 20px;
+  }
+}
+
+@media (max-width: 500px) {
+  .products-section {
+    padding: 38px 12px;
+  }
+
+  .products-header {
+    align-items: flex-start;
+  }
+
+  .product-slider-header {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .review-slider {
+    width: calc(100% - 24px);
+  }
+
+  .footer-container {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
 }
 
 @media (max-width: 768px) {

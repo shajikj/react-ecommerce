@@ -6,7 +6,7 @@
   width: 100%;
   min-height: 100vh;
   background: #f7f7f7;
-  padding: 50px 6%;
+  padding: 120px 6% 50px;
   box-sizing: border-box;
 }
 
@@ -421,7 +421,7 @@
 @media (max-width: 900px) {
 
   .checkout-page {
-    padding: 40px 4%;
+    padding: 108px 4% 45px;
   }
 
   .checkout-container {
@@ -442,7 +442,7 @@
 @media (max-width: 600px) {
 
   .checkout-page {
-    padding: 30px 15px;
+    padding: 96px 15px 35px;
   }
 
   .checkout-header {

@@ -43,6 +43,6 @@
 }
 
 @media (max-width: 500px) {
-  .indoor-page { padding: 42px 18px 60px; }
+  .indoor-page { padding: 96px 18px 60px; }
   .indoor-products-grid { grid-template-columns: 1fr; }
 }
