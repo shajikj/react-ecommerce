@@ -16,6 +16,7 @@ function ProductView({
     ? product.images
     : [product.image];
   const [activeImage, setActiveImage] = useState(productImages[0]);
+  const [zoomPosition, setZoomPosition] = useState(null);
   const [selectedSize, setSelectedSize] = useState("8");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
@@ -68,6 +69,61 @@ function ProductView({
     setReviewMessage("Thanks for sharing your review.");
   };
 
+  const updateZoomPosition = (event) => {
+    if (
+      !window.matchMedia(
+        "(min-width: 801px) and (hover: hover) and (pointer: fine)",
+      ).matches
+    ) {
+      return;
+    }
+
+    const image = event.currentTarget;
+    if (!image.naturalWidth || !image.naturalHeight) return;
+
+    const imageContainer = image.parentElement;
+    if (!imageContainer) return;
+
+    const containerBounds = imageContainer.getBoundingClientRect();
+    const imageBounds = {
+      left: containerBounds.left + image.offsetLeft,
+      top: containerBounds.top + image.offsetTop,
+      width: image.offsetWidth,
+      height: image.offsetHeight,
+    };
+    const imageAspectRatio = image.naturalWidth / image.naturalHeight;
+    const imageBoxAspectRatio = imageBounds.width / imageBounds.height;
+    const contentWidth =
+      imageAspectRatio > imageBoxAspectRatio
+        ? imageBounds.width
+        : imageBounds.height * imageAspectRatio;
+    const contentHeight =
+      imageAspectRatio > imageBoxAspectRatio
+        ? imageBounds.width / imageAspectRatio
+        : imageBounds.height;
+    const contentLeft = imageBounds.left + (imageBounds.width - contentWidth) / 2;
+    const contentTop = imageBounds.top + (imageBounds.height - contentHeight) / 2;
+    const imageX = Math.min(
+      1,
+      Math.max(0, (event.clientX - contentLeft) / contentWidth),
+    );
+    const imageY = Math.min(
+      1,
+      Math.max(0, (event.clientY - contentTop) / contentHeight),
+    );
+
+    setZoomPosition({
+      x:
+        ((imageBounds.width - contentWidth) / 2 + imageX * contentWidth) /
+        imageBounds.width *
+        100,
+      y:
+        ((imageBounds.height - contentHeight) / 2 + imageY * contentHeight) /
+        imageBounds.height *
+        100,
+    });
+  };
+
   return (
     <main className="product-view">
       <div className="product-view-container">
@@ -77,9 +133,24 @@ function ProductView({
 
         <section className="product-view-layout">
           <div className="product-gallery">
-            <div className="product-gallery-main">
+            <div
+              className={`product-gallery-main${
+                zoomPosition ? " is-zoom-active" : ""
+              }`}
+            >
               <span className="product-gallery-caption">BUILT FOR YOUR GAME</span>
-              <img src={activeImage} alt={product.name} />
+              <img
+                src={activeImage}
+                alt={product.name}
+                onMouseEnter={updateZoomPosition}
+                onMouseMove={updateZoomPosition}
+                onMouseLeave={() => setZoomPosition(null)}
+                style={{
+                  transformOrigin: zoomPosition
+                    ? `${zoomPosition.x}% ${zoomPosition.y}%`
+                    : "center",
+                }}
+              />
             </div>
 
             {productImages.length > 1 && (
