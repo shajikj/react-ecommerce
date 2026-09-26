@@ -1,13 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import "./ProductView.css";
 
 const defaultDescription =
   "Designed for confident performance, with a secure fit and dependable comfort from training through match day.";
 
+const reviewsApiUrl = "http://localhost/react-backend/api/reviews";
+
+async function loadProductReviews(productId, signal) {
+  const response = await fetch(
+    `${reviewsApiUrl}/list.php?product_id=${encodeURIComponent(productId)}`,
+    { credentials: "include", signal },
+  );
+  const data = await response.json();
+
+  if (!response.ok || !data.status || !Array.isArray(data.data)) {
+    throw new Error(data.message || "Unable to load product reviews.");
+  }
+
+  return data.data.map((review) => ({
+    id: review.review_id,
+    name: review.customer_name || "Customer",
+    text: review.review_text,
+    rating: Number(review.rating),
+  }));
+}
+
 function ProductView({
   product,
   products,
+  customer,
   onBack,
   onProductSelect,
   addToCart: handleAddToCart,
@@ -21,10 +43,28 @@ function ProductView({
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const [reviews, setReviews] = useState([]);
-  const [reviewName, setReviewName] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  useEffect(() => {
+    if (!product?.id) return undefined;
+
+    const controller = new AbortController();
+    loadProductReviews(product.id, controller.signal)
+      .then(setReviews)
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          console.error("Review fetch failed:", error);
+          setReviewError(error.message || "Unable to load product reviews.");
+        }
+      });
+
+    return () => controller.abort();
+  }, [product?.id]);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewMessage, setReviewMessage] = useState("");
+  const customerId = customer?.id ?? customer?.customer_id;
+  const customerName = customer?.name ?? customer?.customer_name ?? "";
   const relatedProducts = products
     .filter((item) => item.id !== product.id)
     .slice(0, 4);
@@ -44,29 +84,57 @@ function ProductView({
     );
   };
 
-  const submitReview = (event) => {
+  const submitReview = async (event) => {
     event.preventDefault();
-    const name = reviewName.trim();
     const text = reviewText.trim();
 
-    if (!name || !text) {
-      setReviewMessage("Please enter your name and review.");
+    if (!customerId) {
+      setReviewMessage("Please sign in before submitting a review.");
       return;
     }
 
-    setReviews((currentReviews) => [
-      {
-        id: `${Date.now()}-${currentReviews.length}`,
-        name,
-        text,
-        rating: reviewRating,
-      },
-      ...currentReviews,
-    ]);
-    setReviewName("");
-    setReviewText("");
-    setReviewRating(5);
-    setReviewMessage("Thanks for sharing your review.");
+    if (!text) {
+      setReviewMessage("Please enter your review.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewMessage("");
+    try {
+      const response = await fetch(`${reviewsApiUrl}/create.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          product_id: product.id,
+          rating: reviewRating,
+          review_text: text,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.status) {
+        throw new Error(data.message || "Unable to submit your review.");
+      }
+
+      setReviews((currentReviews) => [
+        {
+          id: data.review_id,
+          name: customerName || "Customer",
+          text,
+          rating: reviewRating,
+        },
+        ...currentReviews,
+      ]);
+      setReviewText("");
+      setReviewRating(5);
+      setReviewMessage("Thanks for sharing your review.");
+    } catch (error) {
+      console.error("Review submission failed:", error);
+      setReviewMessage(error.message || "Unable to submit your review.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   const updateZoomPosition = (event) => {
@@ -337,11 +405,9 @@ function ProductView({
               <input
                 id="product-review-name"
                 name="name"
-                autoComplete="name"
-                maxLength={60}
-                value={reviewName}
-                onChange={(event) => setReviewName(event.target.value)}
-                required
+                value={customerName}
+                placeholder="Sign in to write a review"
+                readOnly
               />
               <fieldset className="product-review-rating">
                 <legend>Your rating</legend>
@@ -370,7 +436,11 @@ function ProductView({
                 onChange={(event) => setReviewText(event.target.value)}
                 required
               />
-              <button type="submit" className="product-review-submit">
+              <button
+                type="submit"
+                className="product-review-submit"
+                disabled={isSubmittingReview}
+              >
                 POST REVIEW
               </button>
               {reviewMessage && (
@@ -378,8 +448,13 @@ function ProductView({
                   {reviewMessage}
                 </p>
               )}
+              {reviewError && (
+                <p className="product-review-message" role="alert">
+                  {reviewError}
+                </p>
+              )}
               <p className="product-review-disclaimer">
-                Reviews are shown on this page for this visit.
+                Reviews are linked to your signed-in customer account.
               </p>
             </form>
           </div>

@@ -655,6 +655,7 @@ function App() {
           key={selectedProduct.id}
           product={selectedProduct}
           products={apiProducts}
+          customer = {customer}
           onBack={closeProduct}
           onProductSelect={openProduct}
           addToCart={addToCart}
