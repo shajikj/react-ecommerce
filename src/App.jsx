@@ -655,7 +655,7 @@ function App() {
           key={selectedProduct.id}
           product={selectedProduct}
           products={apiProducts}
-          customer = {customer}
+          customer={customer}
           onBack={closeProduct}
           onProductSelect={openProduct}
           addToCart={addToCart}
@@ -691,10 +691,7 @@ function App() {
           onViewOrders={() => openPage("my-orders")}
         />
       ) : activePage === "my-orders" ? (
-        <MyOrders
-          customer={customer}
-          onViewOrder={openOrderDetails}
-        />
+        <MyOrders customer={customer} onViewOrder={openOrderDetails} />
       ) : activePage === "order-details" ? (
         <OrderDetails
           orderId={selectedOrderId}

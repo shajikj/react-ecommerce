@@ -69,7 +69,8 @@ function ProductView({
     .filter((item) => item.id !== product.id)
     .slice(0, 4);
   const averageRating = reviews.length
-    ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
+    ? reviews.reduce((total, review) => total + review.rating, 0) /
+      reviews.length
     : 0;
 
   const addToCart = () => {
@@ -169,8 +170,10 @@ function ProductView({
       imageAspectRatio > imageBoxAspectRatio
         ? imageBounds.width / imageAspectRatio
         : imageBounds.height;
-    const contentLeft = imageBounds.left + (imageBounds.width - contentWidth) / 2;
-    const contentTop = imageBounds.top + (imageBounds.height - contentHeight) / 2;
+    const contentLeft =
+      imageBounds.left + (imageBounds.width - contentWidth) / 2;
+    const contentTop =
+      imageBounds.top + (imageBounds.height - contentHeight) / 2;
     const imageX = Math.min(
       1,
       Math.max(0, (event.clientX - contentLeft) / contentWidth),
@@ -182,12 +185,12 @@ function ProductView({
 
     setZoomPosition({
       x:
-        ((imageBounds.width - contentWidth) / 2 + imageX * contentWidth) /
-        imageBounds.width *
+        (((imageBounds.width - contentWidth) / 2 + imageX * contentWidth) /
+          imageBounds.width) *
         100,
       y:
-        ((imageBounds.height - contentHeight) / 2 + imageY * contentHeight) /
-        imageBounds.height *
+        (((imageBounds.height - contentHeight) / 2 + imageY * contentHeight) /
+          imageBounds.height) *
         100,
     });
   };
@@ -206,7 +209,9 @@ function ProductView({
                 zoomPosition ? " is-zoom-active" : ""
               }`}
             >
-              <span className="product-gallery-caption">BUILT FOR YOUR GAME</span>
+              <span className="product-gallery-caption">
+                BUILT FOR YOUR GAME
+              </span>
               <img
                 src={activeImage}
                 alt={product.name}
