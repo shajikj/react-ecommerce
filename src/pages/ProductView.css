@@ -612,6 +612,55 @@
   border-bottom: 1px solid #eaebe6;
 }
 
+.product-review-summary {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.55fr) minmax(180px, 1fr);
+  gap: 28px;
+  padding: 22px 0;
+  border-bottom: 1px solid #eaebe6;
+}
+
+.product-review-average {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.product-review-average strong {
+  color: #20231e;
+  font-size: 27px;
+}
+
+.product-review-average span,
+.product-review-breakdown-row {
+  color: #777b72;
+  font-size: 12px;
+}
+
+.product-review-breakdown {
+  display: grid;
+  gap: 7px;
+}
+
+.product-review-breakdown-row {
+  display: grid;
+  grid-template-columns: 36px minmax(50px, 1fr) 22px;
+  align-items: center;
+  gap: 9px;
+}
+
+.product-review-breakdown-track {
+  height: 6px;
+  overflow: hidden;
+  background: #eaebe6;
+}
+
+.product-review-breakdown-track span {
+  display: block;
+  height: 100%;
+  background: #87975c;
+}
+
 .product-reviews-heading .product-view-label {
   margin-bottom: 8px;
 }
@@ -649,6 +698,13 @@
 
 .product-review-list {
   min-width: 0;
+}
+
+.product-reviews-status {
+  padding: 18px 0;
+  color: #777b72;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .product-reviews-empty {
@@ -711,6 +767,11 @@
   font-size: 13px;
   line-height: 1.7;
   overflow-wrap: anywhere;
+}
+
+.product-review-date {
+  color: #8a8e85;
+  font-size: 11px;
 }
 
 .product-review-form {
@@ -799,6 +860,24 @@
   line-height: 1.5;
 }
 
+.product-review-sign-in {
+  align-self: start;
+  padding: 20px;
+  background: #f7f7f4;
+}
+
+.product-review-sign-in h3 {
+  margin: 0 0 8px;
+  color: #20231e;
+  font-size: 18px;
+}
+
+.product-review-sign-in p {
+  color: #777b72;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .related-products-section {
   padding-top: 5px;
 }
@@ -847,6 +926,11 @@
   .product-reviews-content {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .product-review-summary {
+    grid-template-columns: minmax(100px, 0.55fr) minmax(150px, 1fr);
+    gap: 18px;
   }
 
   .product-review-form {
@@ -900,8 +984,17 @@
     gap: 12px;
   }
 
+  .product-review-summary {
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+
   .product-reviews-intro {
     max-width: 230px;
+  }
+
+  .product-review-average strong {
+    font-size: 23px;
   }
 
   .product-reviews-count strong {

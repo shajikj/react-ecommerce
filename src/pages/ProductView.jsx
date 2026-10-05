@@ -23,7 +23,17 @@ async function loadProductReviews(productId, signal) {
     name: review.customer_name || "Customer",
     text: review.review_text,
     rating: Number(review.rating),
+    date: review.review_date || review.created_at || review.date || "",
   }));
+}
+
+function formatReviewDate(date) {
+  if (!date) return "";
+
+  const parsedDate = new Date(date);
+  return Number.isNaN(parsedDate.getTime())
+    ? date
+    : parsedDate.toLocaleDateString();
 }
 
 function ProductView({
@@ -42,32 +52,58 @@ function ProductView({
   const [selectedSize, setSelectedSize] = useState("8");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
-  const [reviews, setReviews] = useState([]);
-  const [reviewError, setReviewError] = useState("");
+  const [reviewData, setReviewData] = useState(() => ({
+    productId: product?.id,
+    reviews: [],
+    isLoading: true,
+    error: "",
+  }));
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   useEffect(() => {
     if (!product?.id) return undefined;
 
     const controller = new AbortController();
     loadProductReviews(product.id, controller.signal)
-      .then(setReviews)
+      .then((loadedReviews) => {
+        setReviewData({
+          productId: product.id,
+          reviews: loadedReviews,
+          isLoading: false,
+          error: "",
+        });
+      })
       .catch((error) => {
         if (error.name !== "AbortError") {
           console.error("Review fetch failed:", error);
-          setReviewError(error.message || "Unable to load product reviews.");
+          setReviewData({
+            productId: product.id,
+            reviews: [],
+            isLoading: false,
+            error: error.message || "Unable to load product reviews.",
+          });
         }
       });
 
     return () => controller.abort();
   }, [product?.id]);
   const [reviewText, setReviewText] = useState("");
-  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewRating, setReviewRating] = useState(0);
   const [reviewMessage, setReviewMessage] = useState("");
+  const currentReviewData =
+    reviewData.productId === product?.id
+      ? reviewData
+      : { reviews: [], isLoading: true, error: "" };
+  const { reviews, isLoading: isLoadingReviews, error: reviewError } =
+    currentReviewData;
   const customerId = customer?.id ?? customer?.customer_id;
   const customerName = customer?.name ?? customer?.customer_name ?? "";
   const relatedProducts = products
     .filter((item) => item.id !== product.id)
     .slice(0, 4);
+  const ratingCounts = [5, 4, 3, 2, 1].map((rating) => ({
+    rating,
+    count: reviews.filter((review) => review.rating === rating).length,
+  }));
   const averageRating = reviews.length
     ? reviews.reduce((total, review) => total + review.rating, 0) /
       reviews.length
@@ -94,6 +130,11 @@ function ProductView({
       return;
     }
 
+    if (reviewRating < 1 || reviewRating > 5) {
+      setReviewMessage("Please select a rating from 1 to 5 stars.");
+      return;
+    }
+
     if (!text) {
       setReviewMessage("Please enter your review.");
       return;
@@ -108,6 +149,7 @@ function ProductView({
         credentials: "include",
         body: JSON.stringify({
           product_id: product.id,
+          customer_id: customerId,
           rating: reviewRating,
           review_text: text,
         }),
@@ -118,18 +160,23 @@ function ProductView({
         throw new Error(data.message || "Unable to submit your review.");
       }
 
-      setReviews((currentReviews) => [
-        {
-          id: data.review_id,
-          name: customerName || "Customer",
-          text,
-          rating: reviewRating,
-        },
-        ...currentReviews,
-      ]);
       setReviewText("");
-      setReviewRating(5);
-      setReviewMessage("Thanks for sharing your review.");
+      setReviewRating(0);
+      try {
+        const updatedReviews = await loadProductReviews(product.id);
+        setReviewData({
+          productId: product.id,
+          reviews: updatedReviews,
+          isLoading: false,
+          error: "",
+        });
+        setReviewMessage("Thanks for sharing your review.");
+      } catch (error) {
+        console.error("Reviews could not be refreshed:", error);
+        setReviewMessage(
+          "Your review was submitted, but the reviews could not be refreshed.",
+        );
+      }
     } catch (error) {
       console.error("Review submission failed:", error);
       setReviewMessage(error.message || "Unable to submit your review.");
@@ -367,7 +414,7 @@ function ProductView({
           <div className="product-reviews-heading">
             <div>
               <p className="product-view-label">PLAYER FEEDBACK</p>
-              <h2>Product reviews</h2>
+              <h2>Customer Reviews</h2>
               <p className="product-reviews-intro">
                 Tried it on the pitch? Share your experience with other players.
               </p>
@@ -378,9 +425,49 @@ function ProductView({
             </div>
           </div>
 
+          <div className="product-review-summary">
+            <div className="product-review-average">
+              <strong>{averageRating.toFixed(1)} ★</strong>
+              <span>
+                Based on {reviews.length}{" "}
+                {reviews.length === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+            <div className="product-review-breakdown">
+              {ratingCounts.map(({ rating, count }) => (
+                <div className="product-review-breakdown-row" key={rating}>
+                  <span>{rating} ★</span>
+                  <span
+                    className="product-review-breakdown-track"
+                    aria-hidden="true"
+                  >
+                    <span
+                      style={{
+                        width: reviews.length
+                          ? `${(count / reviews.length) * 100}%`
+                          : "0%",
+                      }}
+                    />
+                  </span>
+                  <span>{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="product-reviews-content">
-            <div className="product-review-list">
-              {reviews.length ? (
+            <div
+              className="product-review-list"
+              aria-live="polite"
+              aria-busy={isLoadingReviews}
+            >
+              {isLoadingReviews ? (
+                <p className="product-reviews-status">Loading reviews...</p>
+              ) : reviewError ? (
+                <p className="product-reviews-status" role="alert">
+                  {reviewError}
+                </p>
+              ) : reviews.length ? (
                 reviews.map((review) => (
                   <article className="product-review-card" key={review.id}>
                     <div className="product-review-card-heading">
@@ -393,6 +480,12 @@ function ProductView({
                       </span>
                     </div>
                     <p>{review.text}</p>
+                    <time
+                      className="product-review-date"
+                      dateTime={review.date || undefined}
+                    >
+                      {formatReviewDate(review.date) || "Date unavailable"}
+                    </time>
                   </article>
                 ))
               ) : (
@@ -404,64 +497,71 @@ function ProductView({
               )}
             </div>
 
-            <form className="product-review-form" onSubmit={submitReview}>
-              <h3>Write a review</h3>
-              <label htmlFor="product-review-name">Your name</label>
-              <input
-                id="product-review-name"
-                name="name"
-                value={customerName}
-                placeholder="Sign in to write a review"
-                readOnly
-              />
-              <fieldset className="product-review-rating">
-                <legend>Your rating</legend>
-                <div>
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <button
-                      type="button"
-                      key={rating}
-                      className={rating <= reviewRating ? "selected" : ""}
-                      onClick={() => setReviewRating(rating)}
-                      aria-label={`${rating} star${rating === 1 ? "" : "s"}`}
-                      aria-pressed={reviewRating === rating}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <label htmlFor="product-review-text">Your review</label>
-              <textarea
-                id="product-review-text"
-                name="review"
-                rows="4"
-                maxLength={1000}
-                value={reviewText}
-                onChange={(event) => setReviewText(event.target.value)}
-                required
-              />
-              <button
-                type="submit"
-                className="product-review-submit"
-                disabled={isSubmittingReview}
-              >
-                POST REVIEW
-              </button>
-              {reviewMessage && (
-                <p className="product-review-message" role="status">
-                  {reviewMessage}
+            {customerId ? (
+              <form className="product-review-form" onSubmit={submitReview}>
+                <h3>Write a Review</h3>
+                <label htmlFor="product-review-name">Your name</label>
+                <input
+                  id="product-review-name"
+                  name="name"
+                  value={customerName}
+                  readOnly
+                />
+                <fieldset className="product-review-rating">
+                  <legend>Your rating</legend>
+                  <div>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        type="button"
+                        key={rating}
+                        className={rating <= reviewRating ? "selected" : ""}
+                        onClick={() => {
+                          setReviewRating(rating);
+                          setReviewMessage("");
+                        }}
+                        aria-label={`${rating} star${rating === 1 ? "" : "s"}`}
+                        aria-pressed={reviewRating === rating}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <label htmlFor="product-review-text">Your review</label>
+                <textarea
+                  id="product-review-text"
+                  name="review"
+                  rows="4"
+                  maxLength={1000}
+                  value={reviewText}
+                  onChange={(event) => {
+                    setReviewText(event.target.value);
+                    setReviewMessage("");
+                  }}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="product-review-submit"
+                  disabled={isSubmittingReview}
+                >
+                  {isSubmittingReview ? "SUBMITTING..." : "SUBMIT REVIEW"}
+                </button>
+                {reviewMessage && (
+                  <p className="product-review-message" role="status">
+                    {reviewMessage}
+                  </p>
+                )}
+                <p className="product-review-disclaimer">
+                  Reviews are linked to your signed-in customer account.
                 </p>
-              )}
-              {reviewError && (
-                <p className="product-review-message" role="alert">
-                  {reviewError}
-                </p>
-              )}
-              <p className="product-review-disclaimer">
-                Reviews are linked to your signed-in customer account.
-              </p>
-            </form>
+              </form>
+            ) : (
+              <div className="product-review-sign-in">
+                <h3>Write a Review</h3>
+                <p>Sign in to share your experience with this product.</p>
+              </div>
+            )}
           </div>
         </section>
 
