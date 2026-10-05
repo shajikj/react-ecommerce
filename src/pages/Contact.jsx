@@ -16,15 +16,52 @@ function Contact() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-  };
 
+    try {
+      const response = await fetch(
+        "http://localhost/react-backend/api/enquiry/create.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            full_name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            subject: formData.subject,
+            message: formData.message,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      console.log("ENQUIRY API RESPONSE:", data);
+
+      if (data.status === true) {
+        setSubmitted(true);
+
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        alert(data.message || "Failed to submit enquiry");
+      }
+    } catch (error) {
+      console.error("ENQUIRY ERROR:", error);
+
+      alert("Something went wrong. Please try again.");
+    }
+  };
   return (
     <div className="contact-page">
-
       {/* ================================
           HERO
       ================================ */}
@@ -45,7 +82,6 @@ function Contact() {
       ================================ */}
       <section className="contact-cards-section">
         <div className="contact-cards-container">
-
           <div className="contact-info-card">
             <div className="contact-card-icon">
               <i className="bi bi-geo-alt-fill"></i>
@@ -85,7 +121,6 @@ function Contact() {
             <p>Saturday: 10 AM – 4 PM</p>
             <p className="contact-card-note">Sunday: Closed</p>
           </div>
-
         </div>
       </section>
 
@@ -94,7 +129,6 @@ function Contact() {
       ================================ */}
       <section className="contact-main-section">
         <div className="contact-main-container">
-
           {/* LEFT: Contact Form */}
           <div className="contact-form-wrap">
             <div className="contact-form-header">
@@ -112,8 +146,8 @@ function Contact() {
                 </div>
                 <h3>Message Sent!</h3>
                 <p>
-                  Thank you for reaching out. We&rsquo;ll get back to you
-                  within 24 hours.
+                  Thank you for reaching out. We&rsquo;ll get back to you within
+                  24 hours.
                 </p>
                 <button
                   type="button"
@@ -209,7 +243,6 @@ function Contact() {
 
           {/* RIGHT: Additional Info */}
           <div className="contact-aside">
-
             <div className="contact-aside-card">
               <h3>Why Contact Us?</h3>
               <ul className="contact-aside-list">
@@ -244,29 +277,43 @@ function Contact() {
               <h3>Follow Us</h3>
               <p>Stay connected for the latest drops and offers.</p>
               <div className="contact-social-links">
-                <a href="#" aria-label="Instagram" className="contact-social-link">
+                <a
+                  href="#"
+                  aria-label="Instagram"
+                  className="contact-social-link"
+                >
                   <i className="bi bi-instagram"></i>
                   <span>Instagram</span>
                 </a>
-                <a href="#" aria-label="Facebook" className="contact-social-link">
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="contact-social-link"
+                >
                   <i className="bi bi-facebook"></i>
                   <span>Facebook</span>
                 </a>
-                <a href="#" aria-label="Twitter/X" className="contact-social-link">
+                <a
+                  href="#"
+                  aria-label="Twitter/X"
+                  className="contact-social-link"
+                >
                   <i className="bi bi-twitter-x"></i>
                   <span>Twitter / X</span>
                 </a>
-                <a href="#" aria-label="YouTube" className="contact-social-link">
+                <a
+                  href="#"
+                  aria-label="YouTube"
+                  className="contact-social-link"
+                >
                   <i className="bi bi-youtube"></i>
                   <span>YouTube</span>
                 </a>
               </div>
             </div>
-
           </div>
         </div>
       </section>
-
     </div>
   );
 }
