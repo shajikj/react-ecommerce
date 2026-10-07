@@ -4,15 +4,6 @@ function CustomerReviews() {
 
     const reviews = [
         {
-            id: 1, 
-            name: "Rahul",
-            role: "MIDFIELDER",
-            rating: 5,
-            message:
-                "Grip held up on wet turf when nothing else has. Comfortable, stable and ready for every session.",
-            image: "/reviews/review1.webp",
-        },
-        {
             id: 2,
             name: "Arjun",
             role: "STRIKER",
