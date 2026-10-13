@@ -42,9 +42,7 @@ function OrderSummary({ order, onContinueShopping }) {
                 </div>
                 <strong>
                   ₹
-                  {(
-                    Number(item.price) * Number(item.quantity || 1)
-                  ).toFixed(2)}
+                  {(Number(item.price) * Number(item.quantity || 1)).toFixed(2)}
                 </strong>
               </div>
             ))}
@@ -52,20 +50,38 @@ function OrderSummary({ order, onContinueShopping }) {
 
           <div className="order-summary-address">
             <h2>Delivery address</h2>
-            <p><strong>{address.full_name}</strong></p>
+            <p>
+              <strong>{address.full_name}</strong>
+            </p>
             <p>{address.phone}</p>
             <p>{address.address_line1}</p>
             {address.address_line2 && <p>{address.address_line2}</p>}
-            <p>{address.city}, {address.state}</p>
-            <p>{address.pincode}, {address.country}</p>
+            <p>
+              {address.city}, {address.state}
+            </p>
+            <p>
+              {address.pincode}, {address.country}
+            </p>
           </div>
         </div>
 
         <div className="order-summary-totals">
-          <p><span>Subtotal</span><span>₹{order.subtotal.toFixed(2)}</span></p>
-          <p><span>Discount</span><span>-₹{order.discount.toFixed(2)}</span></p>
-          <p><span>Shipping</span><span>₹{order.shipping.toFixed(2)}</span></p>
-          <p><span>GST</span><span>₹{order.gst.toFixed(2)}</span></p>
+          <p>
+            <span>Subtotal</span>
+            <span>₹{order.subtotal.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>Discount</span>
+            <span>-₹{order.discount.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>Shipping</span>
+            <span>₹{order.shipping.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>GST</span>
+            <span>₹{order.gst.toFixed(2)}</span>
+          </p>
           <p className="order-summary-total">
             <strong>Total</strong>
             <strong>₹{order.total.toFixed(2)}</strong>

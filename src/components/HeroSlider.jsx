@@ -16,7 +16,6 @@ const slides = [
 ];
 
 function HeroSlider() {
-
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const nextSlide = () => {
@@ -24,9 +23,7 @@ function HeroSlider() {
   };
 
   const previousSlide = () => {
-    setCurrentSlide(
-      (currentSlide - 1 + slides.length) % slides.length
-    );
+    setCurrentSlide((currentSlide - 1 + slides.length) % slides.length);
   };
 
   useEffect(() => {
@@ -39,7 +36,6 @@ function HeroSlider() {
 
   return (
     <section className="hero-slider">
-
       <img
         src={slides[currentSlide].image}
         alt={slides[currentSlide].title}
@@ -52,17 +48,11 @@ function HeroSlider() {
         <p>{slides[currentSlide].description}</p>
       </div>
 
-      <button
-        className="slider-arrow slider-prev"
-        onClick={previousSlide}
-      >
+      <button className="slider-arrow slider-prev" onClick={previousSlide}>
         ❮
       </button>
 
-      <button
-        className="slider-arrow slider-next"
-        onClick={nextSlide}
-      >
+      <button className="slider-arrow slider-next" onClick={nextSlide}>
         ❯
       </button>
 
@@ -75,7 +65,6 @@ function HeroSlider() {
           />
         ))}
       </div>
-
     </section>
   );
 }

@@ -3,8 +3,7 @@ import ProductCard from "./ProductCard";
 
 // export const products = [];
 
-function ProductSlider({products, onProductSelect }) {
-
+function ProductSlider({ products, onProductSelect }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const visibleProducts = 4;
@@ -12,16 +11,12 @@ function ProductSlider({products, onProductSelect }) {
 
   // Next product
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex < maxIndex ? prevIndex + 1 : 0
-    );
+    setCurrentIndex((prevIndex) => (prevIndex < maxIndex ? prevIndex + 1 : 0));
   };
 
   // Previous product
   const previousSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : maxIndex
-    );
+    setCurrentIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : maxIndex));
   };
 
   // Two-finger horizontal touchpad scrolling
@@ -37,9 +32,7 @@ function ProductSlider({products, onProductSelect }) {
 
   return (
     <section className="product-slider-section">
-
       <div className="product-carousel">
-
         {/* Left arrow */}
         <button
           className="product-side-arrow product-left-arrow"
@@ -49,10 +42,7 @@ function ProductSlider({products, onProductSelect }) {
         </button>
 
         {/* Product slider */}
-        <div
-          className="product-slider-window"
-          onWheel={handleWheel}
-        >
+        <div className="product-slider-window" onWheel={handleWheel}>
           <div
             className="product-slider-track"
             style={{
@@ -76,9 +66,7 @@ function ProductSlider({products, onProductSelect }) {
         >
           →
         </button>
-
       </div>
-
     </section>
   );
 }

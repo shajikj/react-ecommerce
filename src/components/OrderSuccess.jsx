@@ -1,10 +1,6 @@
 import "./OrderSuccess.css";
 
-function OrderSuccess({
-  order,
-  onContinueShopping,
-  onViewMyOrders
-}) {
+function OrderSuccess({ order, onContinueShopping, onViewMyOrders }) {
   if (!order) {
     return (
       <main className="order-success-page">
@@ -45,10 +41,7 @@ function OrderSuccess({
                 <p>Price: ₹{Number(item.price).toFixed(2)}</p>
               </div>
               <strong>
-                ₹
-                {(
-                  Number(item.price) * Number(item.quantity || 1)
-                ).toFixed(2)}
+                ₹{(Number(item.price) * Number(item.quantity || 1)).toFixed(2)}
               </strong>
             </div>
           ))}
@@ -56,10 +49,22 @@ function OrderSuccess({
 
         <div className="order-success-section order-success-total">
           <h2>Order Total</h2>
-          <p><span>Subtotal</span><span>₹{order.subtotal.toFixed(2)}</span></p>
-          <p><span>Discount</span><span>-₹{order.discount.toFixed(2)}</span></p>
-          <p><span>Shipping</span><span>₹{order.shipping.toFixed(2)}</span></p>
-          <p><span>GST</span><span>₹{order.gst.toFixed(2)}</span></p>
+          <p>
+            <span>Subtotal</span>
+            <span>₹{order.subtotal.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>Discount</span>
+            <span>-₹{order.discount.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>Shipping</span>
+            <span>₹{order.shipping.toFixed(2)}</span>
+          </p>
+          <p>
+            <span>GST</span>
+            <span>₹{order.gst.toFixed(2)}</span>
+          </p>
           <p className="order-success-grand-total">
             <strong>Total</strong>
             <strong>₹{order.total.toFixed(2)}</strong>
@@ -68,12 +73,18 @@ function OrderSuccess({
 
         <div className="order-success-section">
           <h2>Delivery Address</h2>
-          <p><strong>{address.full_name}</strong></p>
+          <p>
+            <strong>{address.full_name}</strong>
+          </p>
           <p>{address.phone}</p>
           <p>{address.address_line1}</p>
           {address.address_line2 && <p>{address.address_line2}</p>}
-          <p>{address.city}, {address.state}</p>
-          <p>{address.pincode}, {address.country}</p>
+          <p>
+            {address.city}, {address.state}
+          </p>
+          <p>
+            {address.pincode}, {address.country}
+          </p>
         </div>
 
         <div className="order-success-delivery">
@@ -82,13 +93,13 @@ function OrderSuccess({
         </div>
 
         <div className="order-success-actions">
-         <button
-  type="button"
-  onClick={onViewMyOrders}
-  className="view-orders-btn"
->
-  View My Orders
-</button>
+          <button
+            type="button"
+            onClick={onViewMyOrders}
+            className="view-orders-btn"
+          >
+            View My Orders
+          </button>
           <button
             type="button"
             className="order-success-continue"

@@ -21,9 +21,7 @@ function Subscribe() {
       <div className="subscribe-content">
         <h2>JOIN THE SQUAD</h2>
 
-        <p>
-         Drops, restocks, and match-day offers - straight to your inbox.
-        </p>
+        <p>Drops, restocks, and match-day offers - straight to your inbox.</p>
 
         <form onSubmit={handleSubmit} className="subscribe-form">
           <input
@@ -33,16 +31,10 @@ function Subscribe() {
             onChange={(event) => setEmail(event.target.value)}
           />
 
-          <button type="submit">
-            SUBSCRIBE
-          </button>
+          <button type="submit">SUBSCRIBE</button>
         </form>
 
-        {message && (
-          <p className="subscribe-message">
-            {message}
-          </p>
-        )}
+        {message && <p className="subscribe-message">{message}</p>}
       </div>
     </section>
   );
