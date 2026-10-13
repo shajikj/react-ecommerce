@@ -30,7 +30,6 @@ function Features() {
     <section className="features-section">
       {features.map((feature) => (
         <div className="feature-card" key={feature.id}>
-
           <div className="feature-icon">
             <i className={`bi ${feature.icon}`}></i>
           </div>
@@ -38,7 +37,6 @@ function Features() {
           <h3>{feature.title}</h3>
 
           <p>{feature.description}</p>
-
         </div>
       ))}
     </section>
