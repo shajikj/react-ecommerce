@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./Contact.css";
 
 function Contact() {
@@ -21,7 +22,7 @@ function Contact() {
 
     try {
       const response = await fetch(
-        "http://localhost/react-backend/api/enquiry/create.php",
+        apiUrl("enquiry/create.php"),
         {
           method: "POST",
           headers: {
@@ -37,9 +38,7 @@ function Contact() {
         },
       );
 
-      const data = await response.json();
-
-      console.log("ENQUIRY API RESPONSE:", data);
+      const data = await readApiResponse(response);
 
       if (data.status === true) {
         setSubmitted(true);
@@ -52,7 +51,7 @@ function Contact() {
           message: "",
         });
       } else {
-        alert(data.message || "Failed to submit enquiry");
+        alert("Failed to submit your message. Please try again.");
       }
     } catch (error) {
       console.error("ENQUIRY ERROR:", error);

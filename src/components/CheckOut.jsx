@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./CheckOut.css";
 
 function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
@@ -12,41 +13,36 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
   const [addressError, setAddressError] = useState("");
   const customerId = customer?.id ?? customer?.customer_id;
   const [paymentMethod, setPaymentMethod] = useState("upi");
-  console.log("Customer received in Checkout:", customer);
-  console.log("Customer ID:", customerId);
 
   /* =================================  
      FETCH ADDRESSES
   ================================= */
 
   useEffect(() => {
+    if (!customerId) return undefined;
+
+    let active = true;
     const fetchAddresses = async () => {
-      if (!customerId) {
-        setAddresses([]);
-        setSelectedAddress(null);
-        setAddressLoading(false);
-        return;
-      }
-
       try {
-        setAddressLoading(true);
-        setAddressError("");
-
         const response = await fetch(
-          `http://localhost/react-backend/api/customer/address/list.php?customer_id=${customerId}`,
+          apiUrl(
+            `customer/address/list.php?customer_id=${encodeURIComponent(customerId)}`,
+          ),
           {
             method: "GET",
             credentials: "include",
           },
         );
 
-        const data = await response.json();
-
-        console.log("Checkout Address Response:", data);
+        const data = await readApiResponse(response);
 
         if (data.status) {
-          const addressList = data.data || [];
+          const addressList = data.data;
+          if (!Array.isArray(addressList)) {
+            throw new Error("The address service returned an invalid response.");
+          }
 
+          if (!active) return;
           setAddresses(addressList);
 
           const defaultAddress = addressList.find(
@@ -61,22 +57,24 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
             setSelectedAddress(null);
           }
         } else {
-          setAddresses([]);
-          setSelectedAddress(null);
-          setAddressError(data.message || "Failed to load addresses.");
+          throw new Error("Unable to load saved addresses.");
         }
       } catch (error) {
-        console.error("Checkout address error:", error);
-
-        setAddresses([]);
-        setSelectedAddress(null);
-        setAddressError("Unable to connect to the server.");
+        if (active) {
+          console.error("Checkout address error:", error);
+          setAddresses([]);
+          setSelectedAddress(null);
+          setAddressError("Unable to load saved addresses. Please try again.");
+        }
       } finally {
-        setAddressLoading(false);
+        if (active) setAddressLoading(false);
       }
     };
 
     fetchAddresses();
+    return () => {
+      active = false;
+    };
   }, [customerId]);
 
   /* =================================
@@ -90,8 +88,6 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
 
   const shipping = subtotal > 0 ? 100 : 0;
 
-  const discount = 0;
-
   const buyNowItem =
     typeof window !== "undefined"
       ? window.history.state?.buyNowItem ||
@@ -99,12 +95,25 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
       : null;
   const orderItems = buyNowItem ? [buyNowItem] : cart || [];
   const orderSubtotal = orderItems.reduce(
-    (total, item) => total + Number(item.price) * Number(item.quantity || 1),
+    (total, item) =>
+      total +
+      Number(item.originalPrice ?? item.price) * Number(item.quantity || 1),
     0,
   );
+  const discount = orderItems.reduce(
+    (total, item) =>
+      total +
+      Math.max(
+        0,
+        Number(item.originalPrice ?? item.price) - Number(item.price),
+      ) *
+        Number(item.quantity || 1),
+    0,
+  );
+  const taxableSubtotal = orderSubtotal - discount;
   const orderShipping = orderSubtotal > 0 ? shipping || 100 : 0;
-  const gst = orderSubtotal * 0.18;
-  const total = orderSubtotal + orderShipping + gst - discount;
+  const gst = Math.round(taxableSubtotal * 0.18 * 100) / 100;
+  const total = taxableSubtotal + orderShipping + gst;
 
   return (
     <div className="checkout-page">
@@ -159,7 +168,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
             <h2>02 Delivery Address</h2>
 
             {/* LOADING */}
-            {addressLoading ? (
+            {customerId && addressLoading ? (
               <div className="text-center py-3">
                 <div className="spinner-border"></div>
                 <p className="mt-2">Loading addresses...</p>

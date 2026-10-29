@@ -1,14 +1,98 @@
+import { useEffect, useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./OrderSuccess.css";
 
-function OrderSuccess({ order, onContinueShopping, onViewMyOrders }) {
+function getEstimatedDelivery(createdAt) {
+  const start = createdAt ? new Date(createdAt) : null;
+  if (!start || Number.isNaN(start.getTime())) return "To be confirmed";
+
+  start.setDate(start.getDate() + 6);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 3);
+  const formatDate = (date) =>
+    date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+
+function OrderSuccess({ orderId, onContinueShopping, onViewMyOrders }) {
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!orderId) return undefined;
+
+    const controller = new AbortController();
+    const loadOrder = async () => {
+      try {
+        const response = await fetch(
+          apiUrl(`order/details.php?order_id=${encodeURIComponent(orderId)}`),
+          { credentials: "include", signal: controller.signal },
+        );
+        const data = await readApiResponse(response);
+
+        if (!data.status || !data.data) {
+          throw new Error("Unable to load order details.");
+        }
+
+        const savedOrder = data.data;
+        setOrder({
+          orderId: savedOrder.order_id ?? orderId,
+          items: (savedOrder.items || []).map((item) => ({
+            id: item.product_id ?? item.order_item_id,
+            selectedSize: item.size ?? null,
+            name: item.product_name,
+            image: item.product_image
+              ? /^https?:\/\//i.test(item.product_image)
+                ? item.product_image
+                : apiUrl(`assets/images/products/${item.product_image}`)
+              : "",
+            quantity: Number(item.quantity || 1),
+            price: Number(item.price || 0),
+          })),
+          address: savedOrder.address || {},
+          subtotal: Number(savedOrder.subtotal || 0),
+          discount: Number(savedOrder.discount || 0),
+          shipping: Number(savedOrder.shipping || 0),
+          gst: Number(savedOrder.gst || 0),
+          total: Number(savedOrder.total || 0),
+          estimatedDelivery: getEstimatedDelivery(savedOrder.created_at),
+        });
+      } catch (loadError) {
+        if (loadError.name !== "AbortError") {
+          console.error("Order confirmation could not be loaded:", loadError);
+          setError("Order details could not be loaded. Please check My Orders.");
+        }
+      }
+    };
+
+    loadOrder();
+    return () => controller.abort();
+  }, [orderId]);
+
+  if (!orderId || error) {
+    return (
+      <main className="order-success-page">
+        <section className="order-success-card">
+          <h1>{error ? "Unable to load order details" : "Order details unavailable"}</h1>
+          {error && <p>{error}</p>}
+          <button type="button" onClick={onContinueShopping}>
+            Continue Shopping
+          </button>
+        </section>
+      </main>
+    );
+  }
+
   if (!order) {
     return (
       <main className="order-success-page">
         <section className="order-success-card">
-          <h1>Order details unavailable</h1>
-          <button type="button" onClick={onContinueShopping}>
-            Continue Shopping
-          </button>
+          <h1>Loading your order...</h1>
         </section>
       </main>
     );

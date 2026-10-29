@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./MyOrders.css";
 
 function MyOrders({ customer, onViewOrder }) {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const customerId = customer?.id ?? customer?.customer_id;
+  const [result, setResult] = useState({
+    customerId: null,
+    orders: [],
+    loading: true,
+    error: "",
+  });
+  const hasCurrentResult = result.customerId === customerId;
+  const orders = hasCurrentResult ? result.orders : [];
+  const loading = Boolean(customerId) && !hasCurrentResult;
+  const error = customerId
+    ? hasCurrentResult
+      ? result.error
+      : ""
+    : "Please login to view your orders.";
 
   const getItemCount = (order) => {
     if (order.item_count != null) {
@@ -38,43 +51,57 @@ function MyOrders({ customer, onViewOrder }) {
   };
 
   useEffect(() => {
-    if (!customer?.id && !customer?.customer_id) {
-      setError("Please login to view your orders.");
-      setLoading(false);
-      return;
-    }
+    if (!customerId) return undefined;
 
-    const customerId = customer.id ?? customer.customer_id;
-
+    const controller = new AbortController();
+    let active = true;
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://localhost/react-backend/api/order/list.php?customer_id=${customerId}`,
+          apiUrl(`order/list.php?customer_id=${encodeURIComponent(customerId)}`),
           {
             method: "GET",
             credentials: "include",
+            signal: controller.signal,
           },
         );
 
-        const data = await response.json();
+        const data = await readApiResponse(response);
 
-        console.log("MY ORDERS API RESPONSE:", data);
-
-        if (!response.ok || !data.status) {
-          throw new Error(data.message || "Failed to fetch orders");
+        if (!data.status) {
+          throw new Error("Unable to load your orders.");
+        }
+        if (!Array.isArray(data.data)) {
+          throw new Error("The order service returned an invalid response.");
         }
 
-        setOrders(data.data || []);
+        if (active) {
+          setResult({
+            customerId,
+            orders: data.data,
+            loading: false,
+            error: "",
+          });
+        }
       } catch (error) {
-        console.error("MY ORDERS ERROR:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
+        if (error.name !== "AbortError" && active) {
+          console.error("MY ORDERS ERROR:", error);
+          setResult({
+            customerId,
+            orders: [],
+            loading: false,
+            error: "Unable to load your orders. Please try again.",
+          });
+        }
       }
     };
 
     fetchOrders();
-  }, [customer]);
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [customerId]);
 
   // ==============================
   // LOADING

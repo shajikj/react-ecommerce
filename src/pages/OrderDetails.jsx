@@ -1,46 +1,71 @@
 import { useEffect, useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./OrderDetails.css";
 
 function OrderDetails({ orderId, onBackToOrders }) {
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [result, setResult] = useState({
+    orderId: null,
+    order: null,
+    loading: true,
+    error: "",
+  });
+  const hasCurrentResult = result.orderId === orderId;
+  const order = hasCurrentResult ? result.order : null;
+  const loading = Boolean(orderId) && !hasCurrentResult;
+  const error = orderId
+    ? hasCurrentResult
+      ? result.error
+      : ""
+    : "Order ID is missing.";
 
   useEffect(() => {
-    if (!orderId) {
-      setError("Order ID is missing.");
-      setLoading(false);
-      return;
-    }
+    if (!orderId) return undefined;
 
+    const controller = new AbortController();
+    let active = true;
     const fetchOrderDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost/react-backend/api/order/details.php?order_id=${orderId}`,
+          apiUrl(`order/details.php?order_id=${encodeURIComponent(orderId)}`),
           {
             method: "GET",
             credentials: "include",
+            signal: controller.signal,
           },
         );
 
-        const data = await response.json();
+        const data = await readApiResponse(response);
 
-        console.log("ORDER DETAILS API RESPONSE:", data);
-
-        if (!response.ok || !data.status) {
-          throw new Error(data.message || "Failed to fetch order details");
+        if (!data.status || !data.data) {
+          throw new Error("Unable to load order details.");
         }
 
-        setOrder(data.data);
+        if (active) {
+          setResult({
+            orderId,
+            order: data.data,
+            loading: false,
+            error: "",
+          });
+        }
       } catch (error) {
-        console.error("ORDER DETAILS ERROR:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
+        if (error.name !== "AbortError" && active) {
+          console.error("ORDER DETAILS ERROR:", error);
+          setResult({
+            orderId,
+            order: null,
+            loading: false,
+            error: "Unable to load this order. Please try again.",
+          });
+        }
       }
     };
 
     fetchOrderDetails();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [orderId]);
 
   if (loading) {

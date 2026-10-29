@@ -47,6 +47,99 @@ import OrderSummary from "./components/OrderSummary";
 import OrderSuccess from "./components/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
+import { apiUrl, readApiResponse } from "./api";
+
+const CART_STORAGE_KEY = "shoppingCart";
+const MAX_ORDER_QUANTITY = 10;
+
+function readStoredCart() {
+  try {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (!savedCart) return [];
+
+    const parsedCart = JSON.parse(savedCart);
+    if (!Array.isArray(parsedCart)) return [];
+
+    const quantitiesByProduct = new Map();
+    return parsedCart.flatMap((item) => {
+      const id = Number(item?.id);
+      const quantity = Number(item?.quantity);
+      const price = Number(item?.price);
+      const originalPrice = Number(item?.originalPrice ?? item?.price);
+      const discount = Number(item?.discount ?? 0);
+
+      if (
+        !Number.isSafeInteger(id) ||
+        id <= 0 ||
+        !Number.isSafeInteger(quantity) ||
+        quantity <= 0 ||
+        !Number.isFinite(originalPrice) ||
+        originalPrice < 0 ||
+        !Number.isFinite(price) ||
+        price < 0 ||
+        !Number.isFinite(discount) ||
+        discount < 0 ||
+        discount > 100 ||
+        typeof item?.name !== "string"
+      ) {
+        return [];
+      }
+
+      const alreadyInCart = quantitiesByProduct.get(id) || 0;
+      const validQuantity = Math.min(
+        quantity,
+        MAX_ORDER_QUANTITY - alreadyInCart,
+      );
+      if (validQuantity <= 0) return [];
+      quantitiesByProduct.set(id, alreadyInCart + validQuantity);
+
+      return [
+        {
+          ...item,
+          id,
+          quantity: validQuantity,
+          price,
+          originalPrice,
+          discount,
+          selectedSize:
+            item.selectedSize == null ? null : String(item.selectedSize),
+        },
+      ];
+    });
+  } catch (error) {
+    console.error("Saved cart could not be loaded:", error);
+    return [];
+  }
+}
+
+function readSavedOrderId() {
+  try {
+    const savedOrderId =
+      sessionStorage.getItem("completedOrderId") ||
+      sessionStorage.getItem("completedOrder");
+    if (!savedOrderId) return null;
+
+    let orderId = savedOrderId;
+    try {
+      const legacyOrder = JSON.parse(savedOrderId);
+      if (legacyOrder && typeof legacyOrder === "object") {
+        orderId = legacyOrder.orderId;
+      }
+    } catch {
+      // The current format is a plain order ID.
+    }
+
+    sessionStorage.removeItem("completedOrder");
+    if (orderId == null || String(orderId).trim() === "") return null;
+
+    const normalizedOrderId = String(orderId).trim();
+    sessionStorage.setItem("completedOrderId", normalizedOrderId);
+    return normalizedOrderId;
+  } catch (error) {
+    console.error("Saved order reference could not be loaded:", error);
+    return null;
+  }
+}
 
 function App() {
   /* =========================
@@ -89,8 +182,6 @@ function App() {
      PAGE STATES
   ========================= */
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
   const [selectedProductId, setSelectedProductId] = useState(
     () => getLocationState().productId,
   );
@@ -112,30 +203,50 @@ function App() {
 
   const [apiProducts, setApiProducts] = useState([]);
 
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(readStoredCart);
 
   const [cartOpen, setCartOpen] = useState(false);
 
-  const [completedOrder, setCompletedOrder] = useState(() => {
-    try {
-      const savedOrder = sessionStorage.getItem("completedOrder");
-
-      return savedOrder ? JSON.parse(savedOrder) : null;
-    } catch (error) {
-      console.error("Saved order could not be loaded:", error);
-
-      return null;
-    }
-  });
+  const [completedOrder, setCompletedOrder] = useState(null);
+  const [completedOrderId, setCompletedOrderId] = useState(readSavedOrderId);
+  const selectedProduct =
+    apiProducts.find((item) => item.id === selectedProductId) || null;
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch (error) {
+      console.error("Cart could not be saved:", error);
+    }
+  }, [cart]);
 
   /* =========================
      CART SECTION
   ========================= */
 
   const addToCart = (product) => {
+    if (
+      !Number.isSafeInteger(Number(product.id)) ||
+      Number(product.id) <= 0 ||
+      !Number.isSafeInteger(Number(product.quantity)) ||
+      Number(product.quantity) <= 0 ||
+      Number(product.quantity) > MAX_ORDER_QUANTITY
+    ) {
+      return;
+    }
+
     setCart((prevCart) => {
+      const quantityForProduct = prevCart
+        .filter((item) => item.id === product.id)
+        .reduce((total, item) => total + item.quantity, 0);
+      const quantityToAdd = Math.min(
+        product.quantity,
+        MAX_ORDER_QUANTITY - quantityForProduct,
+      );
+      if (quantityToAdd <= 0) return prevCart;
+
       const existingProduct = prevCart.find(
         (item) =>
           item.id === product.id && item.selectedSize === product.selectedSize,
@@ -146,13 +257,13 @@ function App() {
           item.id === product.id && item.selectedSize === product.selectedSize
             ? {
                 ...item,
-                quantity: item.quantity + product.quantity,
+                quantity: item.quantity + quantityToAdd,
               }
             : item,
         );
       }
 
-      return [...prevCart, product];
+      return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
   };
 
@@ -161,9 +272,24 @@ function App() {
       prevCart
         .map((item) => {
           if (item.id === id && item.selectedSize === selectedSize) {
+            const quantityForOtherSizes = prevCart
+              .filter(
+                (otherItem) =>
+                  otherItem.id === id &&
+                  otherItem.selectedSize !== selectedSize,
+              )
+              .reduce((total, otherItem) => total + otherItem.quantity, 0);
             const newQty = item.quantity + delta;
 
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
+            return newQty > 0
+              ? {
+                  ...item,
+                  quantity: Math.min(
+                    MAX_ORDER_QUANTITY - quantityForOtherSizes,
+                    newQty,
+                  ),
+                }
+              : null;
           }
 
           return item;
@@ -188,16 +314,14 @@ function App() {
     const checkSession = async () => {
       try {
         const response = await fetch(
-          "http://localhost/react-backend/api/customer/check-session.php",
+          apiUrl("customer/check-session.php"),
           {
             method: "GET",
             credentials: "include",
           },
         );
 
-        const data = await response.json();
-
-        console.log("Session Check:", data);
+        const data = await readApiResponse(response);
 
         if (data.logged_in) {
           setCustomer(data.customer);
@@ -223,25 +347,40 @@ function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(
-          "http://localhost/react-backend/api/product/list.php",
-        );
+        const response = await fetch(apiUrl("product/list.php"));
+        const data = await readApiResponse(response);
 
-        const data = await response.json();
+        if (!data.status || !Array.isArray(data.data)) {
+          throw new Error("The product service returned an invalid response.");
+        }
 
-        console.log("Product API Response:", data);
+        const formattedProducts = data.data.map((product) => {
+          const originalPrice = Number(product.Price);
+          const discount = Number(product.discount) || 0;
+          if (
+            !Number.isFinite(originalPrice) ||
+            originalPrice < 0 ||
+            !Number.isFinite(discount) ||
+            discount < 0 ||
+            discount > 100
+          ) {
+            throw new Error("The product service returned invalid pricing.");
+          }
+          const price =
+            Math.round(originalPrice * (1 - discount / 100) * 100) / 100;
 
-        if (data.status) {
-          const formattedProducts = data.data.map((product) => ({
+          return {
             id: Number(product.product_id),
 
             name: product.product_name,
 
             image: product.product_image
-              ? `http://localhost/react-backend/api/assets/images/products/${product.product_image}`
+              ? apiUrl(`assets/images/products/${product.product_image}`)
               : "",
 
-            price: product.Price,
+            price,
+            originalPrice,
+            discount,
 
             colors: product.product_color,
 
@@ -256,10 +395,26 @@ function App() {
             categoryName: product.category_name,
 
             status: Number(product.status),
-          }));
+          };
+        });
 
-          setApiProducts(formattedProducts);
-        }
+        setApiProducts(formattedProducts);
+        setCart((previousCart) =>
+          previousCart.flatMap((item) => {
+            const currentProduct = formattedProducts.find(
+              (product) => product.id === Number(item.id),
+            );
+            return currentProduct
+              ? [
+                  {
+                    ...currentProduct,
+                    selectedSize: item.selectedSize,
+                    quantity: item.quantity,
+                  },
+                ]
+              : [];
+          }),
+        );
       } catch (error) {
         console.error("Product fetch failed:", error);
       }
@@ -267,25 +422,6 @@ function App() {
 
     fetchProducts();
   }, []);
-
-  /* =========================
-     RESTORE PRODUCT FROM URL
-  ========================= */
-
-  useEffect(() => {
-    if (!selectedProductId || apiProducts.length === 0) {
-      return;
-    }
-
-    const foundProduct = apiProducts.find(
-      (item) => item.id === selectedProductId,
-    );
-
-    if (foundProduct) {
-      setSelectedProduct(foundProduct);
-      setActivePage(null);
-    }
-  }, [selectedProductId, apiProducts]);
 
   /* =========================
      BROWSER BACK / FORWARD
@@ -296,8 +432,6 @@ function App() {
       const locationState = getLocationState();
 
       setSelectedProductId(locationState.productId);
-
-      setSelectedProduct(null);
 
       setSelectedOrderId(locationState.orderId);
 
@@ -330,8 +464,6 @@ function App() {
 
     setSelectedProductId(product.id);
 
-    setSelectedProduct(product);
-
     setActivePage(null);
 
     window.scrollTo({
@@ -354,8 +486,6 @@ function App() {
         `${window.location.pathname}?page=${previousPage}`,
       );
     }
-
-    setSelectedProduct(null);
 
     setSelectedProductId(null);
 
@@ -383,8 +513,6 @@ function App() {
         ? `${window.location.pathname}?page=${page}`
         : window.location.pathname,
     );
-
-    setSelectedProduct(null);
 
     setSelectedProductId(null);
 
@@ -415,7 +543,6 @@ function App() {
       `${window.location.pathname}?${params.toString()}`,
     );
 
-    setSelectedProduct(null);
     setSelectedProductId(null);
     setSelectedOrderId(normalizedOrderId);
     setActivePage("order-details");
@@ -430,8 +557,6 @@ function App() {
      PLACE ORDER
   ========================= */
   const handlePlaceOrder = async (order) => {
-    console.log("ORDER RECEIVED IN APP:", order);
-
     // ==========================================
     // CHECK CUSTOMER
     // ==========================================
@@ -469,15 +594,13 @@ function App() {
       total: Number(order.total || 0),
     };
 
-    console.log("ORDER DATA SENT TO API:", orderData);
-
     // ==========================================
     // SEND ORDER TO PHP API
     // ==========================================
 
     try {
       const response = await fetch(
-        "http://localhost/react-backend/api/order/create.php",
+        apiUrl("order/create.php"),
         {
           method: "POST",
 
@@ -491,16 +614,20 @@ function App() {
         },
       );
 
-      const data = await response.json();
-
-      console.log("CREATE ORDER API RESPONSE:", data);
+      const data = await readApiResponse(response);
 
       // ==========================================
       // CHECK API RESPONSE
       // ==========================================
 
       if (!data.status) {
-        alert(data.message || "Failed to create order.");
+        alert("Failed to create order. Please verify your details and try again.");
+        return;
+      }
+
+      const orderId = data.data?.order_id;
+      if (orderId == null || String(orderId).trim() === "") {
+        alert("The order was submitted, but its confirmation number is unavailable.");
         return;
       }
 
@@ -530,7 +657,7 @@ function App() {
       const completedOrderData = {
         ...order,
 
-        orderId: data.data.order_id,
+        orderId,
 
         estimatedDelivery: `${formatDeliveryDate(
           deliveryStart,
@@ -542,11 +669,13 @@ function App() {
       // ==========================================
 
       setCompletedOrder(completedOrderData);
-
-      sessionStorage.setItem(
-        "completedOrder",
-        JSON.stringify(completedOrderData),
-      );
+      setCompletedOrderId(String(orderId));
+      try {
+        sessionStorage.setItem("completedOrderId", String(orderId));
+        sessionStorage.removeItem("completedOrder");
+      } catch (error) {
+        console.error("Order reference could not be saved:", error);
+      }
 
       // ==========================================
       // GO TO ORDER SUCCESS
@@ -575,16 +704,14 @@ function App() {
   const handleLogout = async () => {
     try {
       const response = await fetch(
-        "http://localhost/react-backend/api/customer/logout.php",
+        apiUrl("customer/logout.php"),
         {
           method: "POST",
           credentials: "include",
         },
       );
 
-      const data = await response.json();
-
-      console.log("Logout Response:", data);
+      const data = await readApiResponse(response);
 
       if (data.success) {
         setCustomer(null);
@@ -704,7 +831,7 @@ function App() {
         />
       ) : activePage === "order-success" ? (
         <OrderSuccess
-          order={completedOrder}
+          orderId={completedOrderId}
           onContinueShopping={() => openPage(null)}
           onViewMyOrders={() => openPage("my-orders")}
         />

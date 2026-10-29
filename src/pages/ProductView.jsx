@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import ProductCard from "../components/ProductCard";
+import { apiUrl, readApiResponse } from "../api";
 import "./ProductView.css";
 
 const defaultDescription =
   "Designed for confident performance, with a secure fit and dependable comfort from training through match day.";
 
-const reviewsApiUrl = "http://localhost/react-backend/api/reviews";
-
 async function loadProductReviews(productId, signal) {
   const response = await fetch(
-    `${reviewsApiUrl}/list.php?product_id=${encodeURIComponent(productId)}`,
+    apiUrl(`reviews/list.php?product_id=${encodeURIComponent(productId)}`),
     { credentials: "include", signal },
   );
-  const data = await response.json();
+  const data = await readApiResponse(response);
 
-  if (!response.ok || !data.status || !Array.isArray(data.data)) {
-    throw new Error(data.message || "Unable to load product reviews.");
+  if (!data.status || !Array.isArray(data.data)) {
+    throw new Error("Unable to load product reviews.");
   }
 
   return data.data.map((review) => ({
@@ -49,7 +49,10 @@ function ProductView({
     : [product.image];
   const [activeImage, setActiveImage] = useState(productImages[0]);
   const [zoomPosition, setZoomPosition] = useState(null);
-  const [selectedSize, setSelectedSize] = useState("8");
+  const availableSizes = product.shoeSize
+    ? [String(product.shoeSize)]
+    : ["6", "7", "8", "9", "10"];
+  const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const [reviewData, setReviewData] = useState(() => ({
@@ -143,7 +146,7 @@ function ProductView({
     setIsSubmittingReview(true);
     setReviewMessage("");
     try {
-      const response = await fetch(`${reviewsApiUrl}/create.php`, {
+      const response = await fetch(apiUrl("reviews/create.php"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -154,10 +157,10 @@ function ProductView({
           review_text: text,
         }),
       });
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
-      if (!response.ok || !data.status) {
-        throw new Error(data.message || "Unable to submit your review.");
+      if (!data.status) {
+        throw new Error("Unable to submit your review.");
       }
 
       setReviewText("");
@@ -316,7 +319,9 @@ function ProductView({
             <div className="product-view-description">
               <div
                 dangerouslySetInnerHTML={{
-                  __html: product.description || defaultDescription,
+                  __html: DOMPurify.sanitize(
+                    product.description || defaultDescription,
+                  ),
                 }}
               />
             </div>
@@ -326,7 +331,7 @@ function ProductView({
                 <button type="button">Size guide</button>
               </div>
               <div className="product-size-options">
-                {["6", "7", "8", "9", "10"].map((size) => (
+                {availableSizes.map((size) => (
                   <button
                     type="button"
                     key={size}
@@ -352,8 +357,9 @@ function ProductView({
                 <span aria-live="polite">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity((value) => value + 1)}
+                  onClick={() => setQuantity((value) => Math.min(10, value + 1))}
                   aria-label="Increase quantity"
+                  disabled={quantity >= 10}
                 >
                   +
                 </button>

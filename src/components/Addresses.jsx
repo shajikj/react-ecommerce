@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-
-const API_BASE = "http://localhost/react-backend/api/customer/address";
+import { useCallback, useEffect, useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 
 const Addresses = ({ customer }) => {
   const [addresses, setAddresses] = useState([]);
@@ -29,43 +28,64 @@ const Addresses = ({ customer }) => {
   // ==========================================
   // FETCH ADDRESSES
   // ==========================================
-  const fetchAddresses = async () => {
-    if (!customerId) {
-      setLoading(false);
-      return;
+  const loadAddresses = useCallback(async () => {
+    const response = await fetch(
+      apiUrl(
+        `customer/address/list.php?customer_id=${encodeURIComponent(customerId)}`,
+      ),
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
+    const data = await readApiResponse(response);
+
+    if (!data.success) {
+      throw new Error("Failed to load addresses.");
     }
 
-    try {
-      setLoading(true);
-      setError("");
+    if (!Array.isArray(data.addresses)) {
+      throw new Error("The address service returned an invalid response.");
+    }
 
-      const response = await fetch(
-        `${API_BASE}/list.php?customer_id=${customerId}`,
-        {
-          method: "GET",
-          credentials: "include",
+    return data.addresses;
+  }, [customerId]);
+
+  useEffect(() => {
+    if (!customerId) return undefined;
+
+    let active = true;
+    loadAddresses()
+      .then((addressList) => {
+        if (active) setAddresses(addressList);
+      })
+      .catch((err) => {
+        if (active) {
+          console.error("Address fetch error:", err);
+          setError("Unable to load addresses. Please try again.");
         }
-      );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-      const data = await response.json();
+    return () => {
+      active = false;
+    };
+  }, [customerId, loadAddresses]);
 
-      if (data.success) {
-        setAddresses(data.addresses || []);
-      } else {
-        setError(data.message || "Failed to load addresses.");
-      }
+  const refreshAddresses = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setAddresses(await loadAddresses());
     } catch (err) {
       console.error("Address fetch error:", err);
-      setError("Unable to connect to the server.");
+      setError("Unable to load addresses. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  // Load addresses when component opens
-  useEffect(() => {
-    fetchAddresses();
-  }, [customerId]);
 
   // ==========================================
   // FORM INPUT
@@ -141,8 +161,8 @@ const Addresses = ({ customer }) => {
 
     try {
       const url = editingAddress
-        ? `${API_BASE}/update.php`
-        : `${API_BASE}/add.php`;
+        ? apiUrl("customer/address/update.php")
+        : apiUrl("customer/address/add.php");
 
       const method = editingAddress ? "PUT" : "POST";
 
@@ -159,7 +179,7 @@ const Addresses = ({ customer }) => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (data.success) {
         setMessage(
@@ -171,13 +191,13 @@ const Addresses = ({ customer }) => {
         setShowForm(false);
         setEditingAddress(null);
 
-        await fetchAddresses();
+        await refreshAddresses();
       } else {
-        setError(data.message || "Failed to save address.");
+        setError("Failed to save address. Please check the address details.");
       }
     } catch (err) {
       console.error("Save address error:", err);
-      setError("Unable to connect to the server.");
+      setError("Unable to save address. Please try again.");
     }
   };
 
@@ -197,7 +217,7 @@ const Addresses = ({ customer }) => {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/delete.php`, {
+      const response = await fetch(apiUrl("customer/address/delete.php"), {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -209,17 +229,17 @@ const Addresses = ({ customer }) => {
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (data.success) {
         setMessage("Address deleted successfully.");
-        await fetchAddresses();
+        await refreshAddresses();
       } else {
-        setError(data.message || "Failed to delete address.");
+        setError("Failed to delete address. Please try again.");
       }
     } catch (err) {
       console.error("Delete address error:", err);
-      setError("Unable to connect to the server.");
+      setError("Unable to delete address. Please try again.");
     }
   };
 
@@ -245,7 +265,7 @@ const Addresses = ({ customer }) => {
     };
 
     try {
-      const response = await fetch(`${API_BASE}/update.php`, {
+      const response = await fetch(apiUrl("customer/address/update.php"), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -254,17 +274,17 @@ const Addresses = ({ customer }) => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (data.success) {
         setMessage("Default address updated.");
-        await fetchAddresses();
+        await refreshAddresses();
       } else {
-        setError(data.message || "Failed to set default address.");
+        setError("Failed to set default address. Please try again.");
       }
     } catch (err) {
       console.error("Set default address error:", err);
-      setError("Unable to connect to the server.");
+      setError("Unable to set default address. Please try again.");
     }
   };
 

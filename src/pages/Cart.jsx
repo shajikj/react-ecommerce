@@ -73,6 +73,13 @@ function Cart({
                     const itemPrice = Number(item.price) || 0;
                     const itemQty = Number(item.quantity) || 1;
                     const itemTotal = itemPrice * itemQty;
+                    const productQuantity = cart
+                      .filter((cartItem) => cartItem.id === item.id)
+                      .reduce(
+                        (total, cartItem) =>
+                          total + Number(cartItem.quantity || 0),
+                        0,
+                      );
 
                     return (
                       <div
@@ -157,6 +164,7 @@ function Cart({
                                     )
                                   }
                                   aria-label="Increase quantity"
+                                  disabled={productQuantity >= 10}
                                 >
                                   +
                                 </button>
@@ -211,6 +219,7 @@ function Cart({
                                 onUpdateQuantity(item.id, item.selectedSize, 1)
                               }
                               aria-label="Increase quantity"
+                              disabled={productQuantity >= 10}
                             >
                               +
                             </button>

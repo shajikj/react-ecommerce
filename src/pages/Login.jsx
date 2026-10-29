@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./Login.css";
 
 function Login({ onRegister, onLoginSuccess }) {
@@ -8,18 +9,14 @@ function Login({ onRegister, onLoginSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Email:", email);
-    console.log("Password:", password);
-
     try {
-      // Send login data to PHP API
       const response = await fetch(
-        "http://localhost/react-backend/api/customer/login.php",
+        apiUrl("customer/login.php"),
         {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/jxson",
+            "Content-Type": "application/json",
           },
           credentials: "include",
 
@@ -30,45 +27,17 @@ function Login({ onRegister, onLoginSuccess }) {
         },
       );
 
-      // temperory add the code
-      const sessionResponse = await fetch(
-        "http://localhost/react-backend/api/customer/check-session.php",
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      );
+      const data = await readApiResponse(response);
 
-      const sessionText = await sessionResponse.text();
-
-      console.log("Session Response:", sessionText);
-
-      // temperory add the code
-
-      // Get PHP response as text first
-      const text = await response.text();
-
-      console.log("PHP Response:", text);
-
-      // Convert response to JSON
-      const data = JSON.parse(text);
-
-      console.log("API Response:", data);
-
-      // Check login result
-      if (data.success) {
-        alert(data.message);
-
-        console.log("Customer:", data.customer);
-
+      if (data.success && data.customer) {
         onLoginSuccess(data.customer);
       } else {
-        alert(data.message);
+        alert("Login failed. Please check your email and password.");
       }
     } catch (error) {
       console.error("Login API Error:", error);
 
-      alert("Unable to connect to the server. Please try again.");
+      alert("Unable to sign in. Please try again.");
     }
   };
 

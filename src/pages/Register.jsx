@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl, readApiResponse } from "../api";
 import "./Register.css";
 
 function Register({ onLogin }) {
@@ -9,14 +10,9 @@ function Register({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Name:", name);
-    console.log("Email:", email);
-    console.log("Password:", password);
-
     try {
-      // Send data to PHP API
       const response = await fetch(
-        "http://localhost/react-backend/api/customer/register.php",
+        apiUrl("customer/register.php"),
         {
           method: "POST",
 
@@ -32,30 +28,20 @@ function Register({ onLogin }) {
         },
       );
 
-      // Convert PHP response to JSON
-      const text = await response.text();
+      const data = await readApiResponse(response);
 
-      console.log("PHP Response:", text);
-
-      const data = JSON.parse(text);
-
-      console.log("API Response:", data);
-
-      // Show result
       if (data.success) {
-        alert(data.message);
-
-        // Clear form
+        alert("Registration successful. You can now sign in.");
         setName("");
         setEmail("");
         setPassword("");
       } else {
-        alert(data.message);
+        alert("Registration failed. Please check your details and try again.");
       }
     } catch (error) {
       console.error("API Error:", error);
 
-      alert("Unable to connect to the server. Please try again.");
+      alert("Unable to register. Please try again.");
     }
   };
 
