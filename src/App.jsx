@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./App.css";
 
@@ -50,7 +50,23 @@ import OrderDetails from "./pages/OrderDetails";
 import { apiUrl, readApiResponse } from "./api";
 
 const CART_STORAGE_KEY = "shoppingCart";
+const BUY_NOW_STORAGE_KEY = "buyNowCheckoutItem";
 const MAX_ORDER_QUANTITY = 10;
+
+function readStoredBuyNowItem() {
+  try {
+    const saved = sessionStorage.getItem(BUY_NOW_STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (parsed && typeof parsed === "object" && parsed.id) {
+      return parsed;
+    }
+    return null;
+  } catch (error) {
+    console.error("Saved buy now item could not be loaded:", error);
+    return null;
+  }
+}
 
 function readStoredCart() {
   try {
@@ -204,6 +220,8 @@ function App() {
   const [apiProducts, setApiProducts] = useState([]);
 
   const [cart, setCart] = useState(readStoredCart);
+  const [buyNowItem, setBuyNowItem] = useState(readStoredBuyNowItem);
+  const isPlacingOrderRef = useRef(false);
 
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -265,6 +283,58 @@ function App() {
 
       return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
+
+    setCartOpen(true);
+  };
+
+  const handleBuyNow = (product) => {
+    if (
+      !product ||
+      !Number.isSafeInteger(Number(product.id)) ||
+      Number(product.id) <= 0 ||
+      !product.selectedSize ||
+      String(product.selectedSize).trim() === "" ||
+      !Number.isSafeInteger(Number(product.quantity)) ||
+      Number(product.quantity) <= 0 ||
+      Number(product.quantity) > MAX_ORDER_QUANTITY
+    ) {
+      return;
+    }
+
+    const buyNowProduct = {
+      ...product,
+      id: Number(product.id),
+      productId: Number(product.id),
+      name: String(product.name || ""),
+      image: String(product.image || ""),
+      price: Number(product.price || 0),
+      originalPrice: Number(product.originalPrice ?? product.price ?? 0),
+      discount: Number(product.discount ?? 0),
+      selectedSize: String(product.selectedSize).trim(),
+      quantity: Number(product.quantity),
+    };
+
+    setBuyNowItem(buyNowProduct);
+    try {
+      sessionStorage.setItem(
+        BUY_NOW_STORAGE_KEY,
+        JSON.stringify(buyNowProduct),
+      );
+    } catch (error) {
+      console.error("Buy now item could not be saved:", error);
+    }
+
+    openPage("checkout");
+  };
+
+  const openRegularCheckout = () => {
+    setBuyNowItem(null);
+    try {
+      sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+    } catch (error) {
+      console.error("Buy now item could not be cleared:", error);
+    }
+    openPage("checkout");
   };
 
   const updateCartQuantity = (id, selectedSize, delta) => {
@@ -433,6 +503,15 @@ function App() {
       setSelectedOrderId(locationState.orderId);
 
       setActivePage(locationState.page);
+
+      if (locationState.page !== "checkout") {
+        setBuyNowItem(null);
+        try {
+          sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+        } catch (error) {
+          console.error("Could not clear buy now item:", error);
+        }
+      }
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -503,6 +582,15 @@ function App() {
       setPreviousPage(page);
     }
 
+    if (page !== "checkout") {
+      setBuyNowItem(null);
+      try {
+        sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+      } catch (error) {
+        console.error("Could not clear buy now item:", error);
+      }
+    }
+
     window.history.pushState(
       {},
       "",
@@ -519,6 +607,14 @@ function App() {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const handleCheckoutBack = () => {
+    if (buyNowItem) {
+      openProduct(buyNowItem);
+    } else {
+      openPage("cart");
+    }
   };
 
   const openOrderDetails = (orderId) => {
@@ -554,48 +650,51 @@ function App() {
      PLACE ORDER
   ========================= */
   const handlePlaceOrder = async (order) => {
-    // ==========================================
-    // CHECK CUSTOMER
-    // ==========================================
-
-    if (!customer?.id && !customer?.customer_id) {
-      alert("Customer information not found.");
-      return;
-    }
-
-    const customerId = customer.id ?? customer.customer_id;
-
-    // ==========================================
-    // PREPARE ORDER DATA
-    // ==========================================
-
-    const orderData = {
-      customer_id: Number(customerId),
-
-      address_id: Number(order.address?.address_id),
-
-      payment_method: order.paymentMethod,
-
-      items: order.items.map((item) => ({
-        productId: Number(item.productId ?? item.id),
-        name: item.name,
-        quantity: Number(item.quantity || 1),
-        price: Number(item.price || 0),
-        selectedSize: item.selectedSize ?? null,
-      })),
-
-      subtotal: Number(order.subtotal || 0),
-      discount: Number(order.discount || 0),
-      shipping: Number(order.shipping || 0),
-      gst: Number(order.gst || 0),
-      total: Number(order.total || 0),
-    };
-
-    // ==========================================
-    // SEND ORDER TO PHP API
-    // ==========================================
+    if (isPlacingOrderRef.current) return;
+    isPlacingOrderRef.current = true;
 
     try {
+      // ==========================================
+      // CHECK CUSTOMER
+      // ==========================================
+
+      if (!customer?.id && !customer?.customer_id) {
+        alert("Customer information not found.");
+        return;
+      }
+
+      const customerId = customer.id ?? customer.customer_id;
+
+      // ==========================================
+      // PREPARE ORDER DATA
+      // ==========================================
+
+      const orderData = {
+        customer_id: Number(customerId),
+
+        address_id: Number(order.address?.address_id),
+
+        payment_method: order.paymentMethod,
+
+        items: order.items.map((item) => ({
+          productId: Number(item.productId ?? item.id),
+          name: item.name,
+          quantity: Number(item.quantity || 1),
+          price: Number(item.price || 0),
+          selectedSize: item.selectedSize ?? null,
+        })),
+
+        subtotal: Number(order.subtotal || 0),
+        discount: Number(order.discount || 0),
+        shipping: Number(order.shipping || 0),
+        gst: Number(order.gst || 0),
+        total: Number(order.total || 0),
+      };
+
+      // ==========================================
+      // SEND ORDER TO PHP API
+      // ==========================================
+
       const response = await fetch(apiUrl("order/create.php"), {
         method: "POST",
 
@@ -675,6 +774,23 @@ function App() {
         console.error("Order reference could not be saved:", error);
       }
 
+      // Clear buy now data if this was a Buy Now order, or regular cart if cart checkout
+      if (buyNowItem) {
+        setBuyNowItem(null);
+        try {
+          sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+        } catch (error) {
+          console.error("Buy now item could not be cleared:", error);
+        }
+      } else {
+        setCart([]);
+        try {
+          localStorage.removeItem(CART_STORAGE_KEY);
+        } catch (error) {
+          console.error("Cart could not be cleared:", error);
+        }
+      }
+
       // ==========================================
       // GO TO ORDER SUCCESS
       // ==========================================
@@ -683,6 +799,8 @@ function App() {
     } catch (error) {
       console.error("CREATE ORDER ERROR:", error);
       alert("Unable to place the order. Please try again.");
+    } finally {
+      isPlacingOrderRef.current = false;
     }
   };
   /* =========================
@@ -762,7 +880,7 @@ function App() {
         onLoginSelect={() => openPage("login")}
         onRegisterSelect={() => openPage("register")}
         onContactSelect={() => openPage("contact")}
-        onCheckout={() => openPage("checkout")}
+        onCheckout={openRegularCheckout}
         onProfileSelect={() => openPage("profile")}
         onHomeSelect={() => openPage(null)}
         onProductSelect={openProduct}
@@ -782,7 +900,7 @@ function App() {
           onBack={closeProduct}
           onProductSelect={openProduct}
           addToCart={addToCart}
-          onCheckout={() => openPage("checkout")}
+          onBuyNow={handleBuyNow}
         />
       ) : activePage === "about" ? (
         <About />
@@ -796,7 +914,7 @@ function App() {
         <Cart
           cart={cart}
           onBack={() => openPage("all-products")}
-          onCheckout={() => openPage("checkout")}
+          onCheckout={openRegularCheckout}
           onUpdateQuantity={updateCartQuantity}
           onRemoveItem={removeFromCart}
           onProductSelect={openProduct}
@@ -804,8 +922,9 @@ function App() {
       ) : activePage === "checkout" ? (
         <CheckOut
           cart={cart}
+          buyNowItem={buyNowItem}
           customer={customer}
-          onBack={() => openPage("cart")}
+          onBack={handleCheckoutBack}
           onPlaceOrder={handlePlaceOrder}
         />
       ) : activePage === "profile" ? (

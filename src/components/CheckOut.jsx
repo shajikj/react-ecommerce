@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { apiUrl, readApiResponse } from "../api";
 import "./CheckOut.css";
 
-function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
+function CheckOut({
+  cart = [],
+  buyNowItem = null,
+  customer,
+  onBack,
+  onPlaceOrder,
+}) {
   /* =================================
      ADDRESS STATES
   ================================= */
@@ -13,6 +19,7 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
   const [addressError, setAddressError] = useState("");
   const customerId = customer?.id ?? customer?.customer_id;
   const [paymentMethod, setPaymentMethod] = useState("upi");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /* =================================  
      FETCH ADDRESSES
@@ -81,19 +88,15 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
      CART CALCULATION
   ================================= */
 
-  const subtotal = (cart || []).reduce(
-    (total, item) => total + Number(item.price) * Number(item.quantity),
-    0,
-  );
-
-  const shipping = subtotal > 0 ? 100 : 0;
-
-  const buyNowItem =
-    typeof window !== "undefined"
+  const activeBuyNowItem =
+    buyNowItem ||
+    (typeof window !== "undefined"
       ? window.history.state?.buyNowItem ||
         window.history.state?.usr?.buyNowItem
-      : null;
-  const orderItems = buyNowItem ? [buyNowItem] : cart || [];
+      : null);
+
+  const orderItems = activeBuyNowItem ? [activeBuyNowItem] : (cart || []);
+
   const orderSubtotal = orderItems.reduce(
     (total, item) =>
       total +
@@ -111,9 +114,29 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
     0,
   );
   const taxableSubtotal = orderSubtotal - discount;
-  const orderShipping = orderSubtotal > 0 ? shipping || 100 : 0;
+  const orderShipping = taxableSubtotal > 0 ? 100 : 0;
   const gst = Math.round(taxableSubtotal * 0.18 * 100) / 100;
   const total = taxableSubtotal + orderShipping + gst;
+
+  const handlePlaceOrderClick = async () => {
+    if (isSubmitting || !selectedAddress || orderItems.length === 0) return;
+
+    setIsSubmitting(true);
+    try {
+      await onPlaceOrder({
+        items: orderItems,
+        address: selectedAddress,
+        paymentMethod: paymentMethod,
+        subtotal: orderSubtotal,
+        discount,
+        shipping: orderShipping,
+        gst,
+        total,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="checkout-page">
@@ -361,27 +384,20 @@ function CheckOut({ cart = [], customer, onBack, onPlaceOrder }) {
             <button
               type="button"
               className="place-order-btn"
-              disabled={!selectedAddress || orderItems.length === 0}
-              onClick={() =>
-                onPlaceOrder({
-                  items: orderItems,
-                  address: selectedAddress,
-                  paymentMethod: paymentMethod,
-                  subtotal: orderSubtotal,
-                  discount,
-                  shipping: orderShipping,
-                  gst,
-                  total,
-                })
+              disabled={
+                isSubmitting || !selectedAddress || orderItems.length === 0
               }
+              onClick={handlePlaceOrderClick}
             >
-              Place Order — ₹{total.toFixed(2)}
+              {isSubmitting
+                ? "Placing Order..."
+                : `Place Order — ₹${total.toFixed(2)}`}
             </button>
 
             {/* BACK */}
 
             <button className="back-cart-btn" onClick={onBack}>
-              ← Back to Cart
+              {activeBuyNowItem ? "← Back to Product" : "← Back to Cart"}
             </button>
           </section>
         </div>

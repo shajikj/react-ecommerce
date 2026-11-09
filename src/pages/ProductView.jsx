@@ -43,6 +43,7 @@ function ProductView({
   onBack,
   onProductSelect,
   addToCart: handleAddToCart,
+  onBuyNow,
 }) {
   const productImages = product.images?.length
     ? product.images
@@ -50,9 +51,12 @@ function ProductView({
   const [activeImage, setActiveImage] = useState(productImages[0]);
   const [zoomPosition, setZoomPosition] = useState(null);
   const availableSizes = product.shoeSize
-    ? [String(product.shoeSize)]
+    ? String(product.shoeSize)
+        .split(",")
+        .map((size) => size.trim())
+        .filter(Boolean)
     : ["6", "7", "8", "9", "10"];
-  const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
+  const [selectedSize, setSelectedSize] = useState(availableSizes[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const [reviewData, setReviewData] = useState(() => ({
@@ -113,15 +117,61 @@ function ProductView({
     : 0;
 
   const addToCart = () => {
+    if (!selectedSize || String(selectedSize).trim() === "") {
+      setMessage("Please choose your size before adding to cart.");
+      return;
+    }
+
+    const validQuantity = Number(quantity);
+    if (
+      !Number.isSafeInteger(validQuantity) ||
+      validQuantity < 1 ||
+      validQuantity > 10
+    ) {
+      setMessage("Please select a valid quantity between 1 and 10.");
+      return;
+    }
+
     handleAddToCart({
       ...product,
-      selectedSize,
-      quantity,
+      selectedSize: String(selectedSize).trim(),
+      quantity: validQuantity,
     });
 
     setMessage(
-      `${quantity} ${quantity === 1 ? "item" : "items"} added to cart.`,
+      `${validQuantity} ${validQuantity === 1 ? "item" : "items"} added to cart.`,
     );
+  };
+
+  const buyNow = () => {
+    if (!selectedSize || String(selectedSize).trim() === "") {
+      setMessage("Please choose your size before proceeding.");
+      return;
+    }
+
+    const validQuantity = Number(quantity);
+    if (
+      !Number.isSafeInteger(validQuantity) ||
+      validQuantity < 1 ||
+      validQuantity > 10
+    ) {
+      setMessage("Please select a valid quantity between 1 and 10.");
+      return;
+    }
+
+    if (!product?.id || Number(product.id) <= 0) {
+      setMessage("Unable to purchase this product. Please try again.");
+      return;
+    }
+
+    if (onBuyNow) {
+      onBuyNow({
+        ...product,
+        id: Number(product.id),
+        selectedSize: String(selectedSize).trim(),
+        quantity: validQuantity,
+      });
+    }
   };
 
   const submitReview = async (event) => {
@@ -336,7 +386,10 @@ function ProductView({
                     type="button"
                     key={size}
                     className={selectedSize === size ? "selected" : ""}
-                    onClick={() => setSelectedSize(size)}
+                    onClick={() => {
+                      setSelectedSize(size);
+                      setMessage("");
+                    }}
                     aria-pressed={selectedSize === size}
                   >
                     {size}
@@ -375,7 +428,7 @@ function ProductView({
             <button
               type="button"
               className="product-action-button product-buy-button"
-              onClick={addToCart}
+              onClick={buyNow}
             >
               BUY NOW
             </button>
