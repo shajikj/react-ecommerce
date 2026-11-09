@@ -190,7 +190,7 @@ function App() {
 
   const [previousPage, setPreviousPage] = useState("all-products");
 
-  /* =========================
+  /* =========================e
      CUSTOMER AUTHENTICATION
   ========================= */
 
@@ -313,13 +313,10 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(
-          apiUrl("customer/check-session.php"),
-          {
-            method: "GET",
-            credentials: "include",
-          },
-        );
+        const response = await fetch(apiUrl("customer/check-session.php"), {
+          method: "GET",
+          credentials: "include",
+        });
 
         const data = await readApiResponse(response);
 
@@ -599,20 +596,17 @@ function App() {
     // ==========================================
 
     try {
-      const response = await fetch(
-        apiUrl("order/create.php"),
-        {
-          method: "POST",
+      const response = await fetch(apiUrl("order/create.php"), {
+        method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          credentials: "include",
-
-          body: JSON.stringify(orderData),
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+
+        credentials: "include",
+
+        body: JSON.stringify(orderData),
+      });
 
       const data = await readApiResponse(response);
 
@@ -621,13 +615,17 @@ function App() {
       // ==========================================
 
       if (!data.status) {
-        alert("Failed to create order. Please verify your details and try again.");
+        alert(
+          "Failed to create order. Please verify your details and try again.",
+        );
         return;
       }
 
       const orderId = data.data?.order_id;
       if (orderId == null || String(orderId).trim() === "") {
-        alert("The order was submitted, but its confirmation number is unavailable.");
+        alert(
+          "The order was submitted, but its confirmation number is unavailable.",
+        );
         return;
       }
 
@@ -703,13 +701,10 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(
-        apiUrl("customer/logout.php"),
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      );
+      const response = await fetch(apiUrl("customer/logout.php"), {
+        method: "POST",
+        credentials: "include",
+      });
 
       const data = await readApiResponse(response);
 

@@ -212,7 +212,6 @@ const Profile = ({ customer: sessionCustomer, onViewOrders }) => {
                 <Addresses customer={sessionCustomer} />
               </div>
             )}
-            
           </div>
         </section>
       </div>
