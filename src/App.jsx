@@ -766,6 +766,7 @@ function App() {
         onProfileSelect={() => openPage("profile")}
         onHomeSelect={() => openPage(null)}
         onProductSelect={openProduct}
+        onRemoveCartItem={removeFromCart}
       />
 
       {/* =========================

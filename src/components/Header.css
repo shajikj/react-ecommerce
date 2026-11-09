@@ -529,6 +529,31 @@
   color: #666;
 }
 
+.cart-item-info .cart-item-remove-btn {
+  background: transparent;
+  border: none;
+  color: #dc3545;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+  margin-top: 2px;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.cart-item-info .cart-item-remove-btn:hover {
+  color: #b02a37;
+  opacity: 0.9;
+}
+
+.cart-item-info .cart-item-remove-btn i {
+  font-size: 12px;
+}
+
 .cart-item-info strong {
   display: block;
   margin-top: 8px;

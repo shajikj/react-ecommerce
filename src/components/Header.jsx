@@ -19,6 +19,7 @@ function Header({
   setCartOpen: propSetCartOpen,
   onCheckout,
   onHomeSelect,
+  onRemoveCartItem,
 }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -394,6 +395,18 @@ function Header({
               <p>
                 Quantity: {item.quantity}
               </p>
+
+              {onRemoveCartItem && (
+                <button
+                  type="button"
+                  className="cart-item-remove-btn"
+                  onClick={() => onRemoveCartItem(item.id, item.selectedSize)}
+                  title="Remove item"
+                  aria-label="Remove item"
+                >
+                  <i className="bi bi-trash3"></i> Remove
+                </button>
+              )}
 
               <strong>
                 ₹{Number(item.price) * item.quantity}
